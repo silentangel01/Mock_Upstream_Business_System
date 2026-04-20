@@ -23,7 +23,7 @@ class HvasApiClient(
             handleImageUrl?.let { body["handle_image_url"] = it }
 
             val builder = restClient.patch()
-                .uri("$hvasBaseUrl/api/v1/hvas/events/$hvasEventId/status")
+                .uri("$hvasBaseUrl/api/events/$hvasEventId/status")
                 .header("Content-Type", "application/json")
             if (apiKey.isNotBlank()) {
                 builder.header("X-API-Key", apiKey)
