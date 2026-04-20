@@ -16,6 +16,11 @@ class HvasApiClient(
 
     @Async
     fun updateEventStatus(hvasEventId: String, status: String, handledBy: String? = null, handleNote: String? = null, handleImageUrl: String? = null) {
+        // Skip callback for demo-simulated events (not real HVAS events)
+        if (hvasEventId.startsWith("demo-")) {
+            log.debug("Skipping HVAS callback for demo event {}", hvasEventId)
+            return
+        }
         try {
             val body = mutableMapOf<String, Any?>("status" to status)
             handledBy?.let { body["handled_by"] = it }
