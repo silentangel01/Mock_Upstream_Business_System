@@ -47,13 +47,22 @@ import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@shared/stores/auth'
 import { useNotificationStore } from '@shared/stores/notification'
 import { connectWebSocket, disconnectWebSocket } from '@shared/services/websocket'
-import { onMounted, onUnmounted } from 'vue'
+import { onMounted, onUnmounted, watch } from 'vue'
+import { ElNotification } from 'element-plus'
 import { DataAnalysis, Tickets, Setting, Bell, ArrowDown } from '@element-plus/icons-vue'
 
 const route = useRoute()
 const router = useRouter()
 const auth = useAuthStore()
 const notif = useNotificationStore()
+
+// Show desktop notification when new WS message arrives
+watch(() => notif.messages.length, (newLen, oldLen) => {
+  if (newLen > oldLen) {
+    const msg = notif.messages[0]
+    ElNotification({ title: msg.title, message: msg.body, type: 'info', duration: 4000 })
+  }
+})
 
 onMounted(() => {
   if (auth.token) connectWebSocket(auth.token)

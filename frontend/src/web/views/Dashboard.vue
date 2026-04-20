@@ -69,7 +69,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import VChart from 'vue-echarts'
 import { use } from 'echarts/core'
@@ -79,6 +79,7 @@ import { CanvasRenderer } from 'echarts/renderers'
 import { getTicketStats, listTickets } from '@shared/api/tickets'
 import { simulateEvent } from '@shared/api/demo'
 import { useAuthStore } from '@shared/stores/auth'
+import { useNotificationStore } from '@shared/stores/notification'
 import { STATUS_LABEL, STATUS_TYPE, EVENT_TYPE_LABEL, TEAM_LABEL } from '@shared/utils/constants'
 import { formatDate } from '@shared/utils/format'
 import type { Ticket, TicketStats } from '@shared/types'
@@ -87,11 +88,17 @@ use([PieChart, BarChart, TitleComponent, TooltipComponent, LegendComponent, Grid
 
 const router = useRouter()
 const auth = useAuthStore()
+const notif = useNotificationStore()
 const stats = ref<TicketStats>({ total: 0, byStatus: {}, byEventType: {}, byTeam: {} })
 const recentTickets = ref<Ticket[]>([])
 const simulating = ref(false)
 
 const avgTime = computed(() => Math.round(stats.value.avgResolutionMinutes ?? 0))
+
+// Auto-refresh when WebSocket notification arrives
+watch(() => notif.messages.length, () => {
+  loadData()
+})
 
 const statusChartOption = computed(() => ({
   tooltip: { trigger: 'item' },
