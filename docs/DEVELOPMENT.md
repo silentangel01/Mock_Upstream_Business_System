@@ -28,7 +28,7 @@ D:\mubs\
     ├── .gitignore
     └── src/
         ├── main/kotlin/com/mubs/
-        │   ├── MubsApplication.kt     # 入口 (@SpringBootApplication + @EnableScheduling)
+        │   ├── MubsApplication.kt     # 入口 (@SpringBootApplication + @EnableScheduling + @EnableAsync)
         │   ├── config/
         │   │   ├── SecurityConfig.kt  # Spring Security 过滤链
         │   │   ├── WebSocketConfig.kt # STOMP/SockJS 配置
@@ -49,17 +49,22 @@ D:\mubs\
         │   │   ├── DispatchRuleRepository.kt
         │   │   └── NotificationLogRepository.kt
         │   ├── service/
-        │   │   ├── TicketService.kt           # 工单 CRUD + 统计
+        │   │   ├── TicketService.kt           # 工单 CRUD + 统计 + 重派
         │   │   ├── DispatchService.kt         # 自动派遣 + 超时回收
         │   │   ├── AuthService.kt             # 登录认证
-        │   │   ├── NotificationService.kt     # WebSocket + 邮件通知
+        │   │   ├── NotificationService.kt     # WebSocket + 邮件通知 (含 H5 链接)
         │   │   ├── WebhookVerificationService.kt  # HMAC-SHA256 签名验证
-        │   │   └── HvasPollingService.kt      # HVAS 轮询备用方案
+        │   │   ├── HvasPollingService.kt      # HVAS 轮询备用方案
+        │   │   ├── HvasApiClient.kt           # HVAS 状态回传客户端
+        │   │   ├── FileStorageService.kt      # 照片文件存储
+        │   │   └── DemoService.kt             # 演示模式模拟事件
         │   ├── controller/
         │   │   ├── AuthController.kt          # POST /api/auth/login
-        │   │   ├── TicketController.kt        # GET/PATCH /api/tickets
+        │   │   ├── TicketController.kt        # GET/PATCH /api/tickets + reassign
         │   │   ├── HvasWebhookController.kt   # POST /api/v1/hvas/webhook
         │   │   ├── DispatchRuleController.kt  # CRUD /api/dispatch-rules
+        │   │   ├── FileUploadController.kt    # POST /api/tickets/{id}/photos
+        │   │   ├── DemoController.kt          # POST /api/demo/simulate-event
         │   │   └── HealthController.kt        # GET /api/health
         │   ├── security/
         │   │   ├── JwtTokenProvider.kt        # JWT 生成/验证 (JJWT)
@@ -69,7 +74,9 @@ D:\mubs\
         │   │   ├── AuthDtos.kt                # LoginRequest/LoginResponse
         │   │   ├── TicketDtos.kt              # TicketStatusUpdateRequest, TicketFilterParams, TicketStatsResponse
         │   │   ├── HvasWebhookPayload.kt      # HVAS Webhook 载荷
-        │   │   └── DispatchRuleDto.kt         # 派遣规则 DTO
+        │   │   ├── DispatchRuleDto.kt         # 派遣规则 DTO
+        │   │   ├── ReassignRequest.kt         # 重派请求 DTO
+        │   │   └── DemoEventRequest.kt        # 演示事件请求 DTO
         │   └── seed/
         │       └── DataSeeder.kt              # 初始化种子数据
         └── main/resources/
@@ -96,7 +103,8 @@ cd D:\mubs\backend
 
 启动后自动:
 - 连接 MongoDB (localhost:27018)
-- 种子数据写入 (3 个用户 + 4 条派遣规则)
+- 种子数据写入 (5 个用户 + 4 条派遣规则 + 15 条历史工单)
+- 创建照片上传目录 (`./uploads/photos`)
 - 启动派遣超时定时任务
 
 ### 3. 验证
@@ -176,6 +184,8 @@ curl -X POST http://localhost:8090/api/auth/login \
 | GET | `/api/tickets` | 工单列表 (分页/过滤) |
 | GET | `/api/tickets/{id}` | 工单详情 |
 | PATCH | `/api/tickets/{id}/status` | 更新工单状态 |
+| PATCH | `/api/tickets/{id}/reassign` | 重派工单 (ADMIN/DISPATCHER) |
+| POST | `/api/tickets/{id}/photos` | 上传处置照片 (multipart) |
 | GET | `/api/tickets/stats` | 聚合统计 |
 
 **查询参数 (GET /api/tickets)**:
@@ -222,6 +232,62 @@ curl -X POST http://localhost:8090/api/auth/login \
 ```
 
 匹配逻辑: 按 `eventType` 查找规则 → 按 `priority` 降序 → 优先匹配精确 `areaCode`, 其次匹配通配符 `*`。
+
+### 重派工单 (需 ADMIN 或 DISPATCHER)
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| PATCH | `/api/tickets/{id}/reassign` | 重派工单到其他团队 |
+
+**请求**:
+```json
+{"targetTeam": "traffic_team", "note": "需要交通组处理"}
+```
+
+允许从 DISPATCHED / RETURNED / PENDING 状态触发。修改 `assignedTeam`, 状态重置为 `DISPATCHED`, timeline 新增 `REASSIGNED` 记录。
+
+### 照片上传
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| POST | `/api/tickets/{id}/photos` | 上传处置照片 (multipart/form-data) |
+| GET | `/uploads/photos/{filename}` | 访问已上传照片 (公开) |
+
+**上传请求**: `multipart/form-data`, 字段名 `file`, 最大 10MB
+
+**响应**:
+```json
+{"url": "/uploads/photos/uuid.jpg", "filename": "uuid.jpg"}
+```
+
+照片 URL 自动追加到工单的 `handlePhotos` 列表。
+
+### 演示模式 (需 ADMIN)
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| POST | `/api/demo/simulate-event` | 生成模拟事件 |
+
+**请求** (可选, 不传则随机):
+```json
+{"eventType": "smoke_flame", "areaCode": "east_district", "description": "..."}
+```
+
+预定义 3 种场景模板: 火灾 (smoke_flame), 违停 (parking_violation), 空间利用率 (common_space_utilization)。
+生成的事件走完整流程: 创建工单 → 自动派遣 → WebSocket 通知。
+配置开关: `mubs.demo.enabled` (默认 true)。
+
+### HVAS 状态回传
+
+工单状态变更时自动异步回传 HVAS:
+
+| 工单状态 | 回传 HVAS status |
+|----------|-----------------|
+| DISPATCHED | `dispatched` |
+| ACCEPTED / IN_PROGRESS | `processing` |
+| RESOLVED | `resolved` (含 handled_by, handle_note, handle_image_url) |
+
+调用 `PATCH ${mubs.hvas.base-url}/api/v1/hvas/events/{event_id}/status`, 失败仅 log 不阻塞。
 
 ---
 
@@ -294,6 +360,8 @@ client.connect({}, () => {
 | `admin` | `admin123` | ADMIN | - |
 | `dispatcher_wang` | `dispatch123` | DISPATCHER | - |
 | `worker_zhang` | `worker123` | FIELDWORKER | fire_team |
+| `worker_li` | `worker123` | FIELDWORKER | traffic_team |
+| `worker_chen` | `worker123` | FIELDWORKER | urban_mgmt_team |
 
 ### 派遣规则
 
@@ -304,9 +372,14 @@ client.connect({}, () => {
 | parking_violation | * | traffic_team | 1 |
 | common_space_utilization | * | urban_mgmt_team | 1 |
 
----
+### 历史工单
 
-## 配置参考
+首次启动时 (tickets 集合为空), 自动插入 15 条历史工单:
+- 覆盖所有事件类型和状态 (PENDING/DISPATCHED/IN_PROGRESS/RESOLVED/CLOSED/RETURNED)
+- 时间跨度: 最近 7 天
+- 含完整 timeline 记录, 确保仪表盘统计图表有数据
+
+---
 
 ### application.yml 关键配置
 
@@ -320,6 +393,10 @@ client.connect({}, () => {
 | `mubs.hvas.polling.enabled` | `HVAS_POLLING_ENABLED` | `false` | HVAS 轮询开关 |
 | `mubs.hvas.polling.interval-ms` | `HVAS_POLLING_INTERVAL_MS` | `30000` | 轮询间隔 (毫秒) |
 | `mubs.dispatch.timeout-minutes` | `DISPATCH_TIMEOUT_MINUTES` | `30` | 派遣超时 (分钟) |
+| `mubs.upload.photo-dir` | `UPLOAD_PHOTO_DIR` | `./uploads/photos` | 照片上传目录 |
+| `mubs.demo.enabled` | `DEMO_ENABLED` | `true` | 演示模式开关 |
+| `mubs.h5.base-url` | `H5_BASE_URL` | `http://localhost:5173` | H5 移动端地址 (通知链接) |
+| `spring.servlet.multipart.max-file-size` | - | `10MB` | 上传文件大小限制 |
 | `spring.mail.enabled` | `MAIL_ENABLED` | `false` | 邮件通知开关 |
 
 ---
@@ -335,9 +412,10 @@ client.connect({}, () => {
 6. SecurityContext 中注入用户身份
 
 ### 访问控制
-- **公开端点**: `/api/auth/**`, `/api/health`, `/api/v1/hvas/webhook`, `/ws/**`
+- **公开端点**: `/api/auth/**`, `/api/health`, `/api/v1/hvas/webhook`, `/ws/**`, `/uploads/**`
 - **需认证**: 所有其他端点
-- **需 ADMIN**: `/api/dispatch-rules/**`
+- **需 ADMIN**: `/api/dispatch-rules/**`, `/api/demo/**`
+- **需 ADMIN 或 DISPATCHER**: `PATCH /api/tickets/{id}/reassign`
 
 ### Webhook 安全
 Webhook 不使用 JWT, 使用 HMAC-SHA256 签名验证 (服务器到服务器通信, HVAS 无 MUBS 用户身份):

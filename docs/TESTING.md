@@ -1,6 +1,6 @@
 # MUBS 测试文档 (Testing Guide)
 
-## 测试文件
+## 自动化测试文件
 
 ```
 src/test/kotlin/com/mubs/
@@ -10,6 +10,22 @@ src/test/kotlin/com/mubs/
     ├── DispatchServiceTest.kt         # 自动派遣逻辑测试
     ├── TicketStatusTransitionTest.kt  # 状态机转换测试
     └── WebhookVerificationServiceTest.kt  # HMAC 签名验证测试
+```
+
+## Phase 2 新增源文件
+
+```
+src/main/kotlin/com/mubs/
+├── controller/
+│   ├── DemoController.kt             # POST /api/demo/simulate-event
+│   └── FileUploadController.kt       # POST /api/tickets/{id}/photos
+├── service/
+│   ├── DemoService.kt                # 模拟事件生成 (3 种场景模板)
+│   ├── FileStorageService.kt         # 本地磁盘照片存储
+│   └── HvasApiClient.kt             # 异步回传 HVAS 事件状态
+└── dto/
+    ├── ReassignRequest.kt            # 重派请求 DTO
+    └── DemoEventRequest.kt           # 演示事件请求 DTO
 ```
 
 ## 运行测试
@@ -290,6 +306,180 @@ curl http://localhost:8090/api/tickets?size=1 \
 ```
 
 期望: MUBS 工单列表中出现 HVAS 推送的事件, 状态为 `DISPATCHED`, 团队为 `fire_team`。
+
+---
+
+## Phase 2 新增功能测试
+
+### 12. 工单重派 (PATCH /api/tickets/{id}/reassign)
+
+```bash
+# 前置: 获取一个 DISPATCHED 状态的工单 ID
+TICKET_ID="<DISPATCHED 状态的工单 ID>"
+
+# 重派到 traffic_team
+curl -X PATCH http://localhost:8090/api/tickets/$TICKET_ID/reassign \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"targetTeam": "traffic_team", "note": "需要交通组处理"}'
+```
+
+期望: `200`, 工单 `assignedTeam` 变为 `traffic_team`, `status` 为 `DISPATCHED`, timeline 新增 `REASSIGNED` 记录。
+
+权限测试:
+```bash
+# 用 fieldworker 登录 (应被拒绝)
+WORKER_TOKEN=$(curl -s -X POST http://localhost:8090/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"username":"worker_zhang","password":"worker123"}' | python -c "import sys,json; print(json.load(sys.stdin)['token'])")
+
+curl -X PATCH http://localhost:8090/api/tickets/$TICKET_ID/reassign \
+  -H "Authorization: Bearer $WORKER_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"targetTeam": "fire_team"}'
+```
+
+期望: `403 Forbidden`
+
+状态限制测试:
+```bash
+# 对 RESOLVED 状态的工单尝试重派 (应失败)
+curl -X PATCH http://localhost:8090/api/tickets/$RESOLVED_TICKET_ID/reassign \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"targetTeam": "fire_team"}'
+```
+
+期望: `500`, "Cannot reassign ticket in status RESOLVED"
+
+### 13. 照片上传 (POST /api/tickets/{id}/photos)
+
+```bash
+# 上传照片
+curl -X POST http://localhost:8090/api/tickets/$TICKET_ID/photos \
+  -H "Authorization: Bearer $TOKEN" \
+  -F "file=@test_photo.jpg"
+```
+
+期望: `200`, 返回 `{"url": "/uploads/photos/<uuid>.jpg", "filename": "<uuid>.jpg"}`
+
+```bash
+# 访问上传的照片 (公开, 无需认证)
+curl -I http://localhost:8090/uploads/photos/<filename>
+```
+
+期望: `200 OK`, Content-Type 为图片类型
+
+```bash
+# 查看工单详情, 验证 handlePhotos 字段
+curl http://localhost:8090/api/tickets/$TICKET_ID \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+期望: `handlePhotos` 数组包含上传的照片 URL
+
+### 14. 演示模式 (POST /api/demo/simulate-event)
+
+```bash
+# 随机生成模拟事件 (不传 body)
+curl -X POST http://localhost:8090/api/demo/simulate-event \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json"
+```
+
+期望: `201`, 返回完整 Ticket 对象, `hvasEventId` 以 `demo-` 开头, 状态为 `DISPATCHED`
+
+```bash
+# 指定事件类型
+curl -X POST http://localhost:8090/api/demo/simulate-event \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"eventType": "parking_violation", "areaCode": "central_district", "description": "演示: 违停事件"}'
+```
+
+期望: `201`, eventType 为 `parking_violation`, assignedTeam 为 `traffic_team`
+
+权限测试:
+```bash
+# 用 dispatcher 登录 (应被拒绝, 仅 ADMIN 可用)
+DISP_TOKEN=$(curl -s -X POST http://localhost:8090/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"username":"dispatcher_wang","password":"dispatch123"}' | python -c "import sys,json; print(json.load(sys.stdin)['token'])")
+
+curl -X POST http://localhost:8090/api/demo/simulate-event \
+  -H "Authorization: Bearer $DISP_TOKEN" \
+  -H "Content-Type: application/json"
+```
+
+期望: `403 Forbidden`
+
+### 15. 预置历史数据验证
+
+```bash
+# 首次启动后 (tickets 集合为空时), 检查种子数据
+curl http://localhost:8090/api/tickets?size=50 \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+期望:
+- 返回 15 条历史工单
+- 覆盖所有事件类型: smoke_flame, parking_violation, common_space_utilization
+- 覆盖所有状态: PENDING, DISPATCHED, IN_PROGRESS, RESOLVED, CLOSED, RETURNED
+- 时间跨度: 最近 7 天
+- 每条工单含完整 timeline
+
+```bash
+# 统计应有数据
+curl http://localhost:8090/api/tickets/stats \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+期望: `total` 为 15, `byStatus`/`byEventType`/`byTeam` 均有分布
+
+### 16. 新增种子用户验证
+
+```bash
+# worker_li (traffic_team) 登录
+curl -X POST http://localhost:8090/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"username": "worker_li", "password": "worker123"}'
+
+# worker_chen (urban_mgmt_team) 登录
+curl -X POST http://localhost:8090/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"username": "worker_chen", "password": "worker123"}'
+```
+
+期望: 两个用户均能成功登录, 返回 JWT token
+
+### 17. WebSocket 通知 actionUrl 验证
+
+使用 WebSocket 客户端连接 `ws://localhost:8090/ws`, 订阅 `/topic/tickets/all`, 然后触发工单状态变更或演示事件。
+
+期望: 收到的消息包含:
+```json
+{
+  "ticket": { ... },
+  "message": "...",
+  "actionUrl": "http://localhost:5173/tickets/<ticket_id>"
+}
+```
+
+### 18. HVAS 状态回传验证
+
+前置: HVAS 后端运行在 `localhost:8000`
+
+```bash
+# 更新工单状态为 RESOLVED
+curl -X PATCH http://localhost:8090/api/tickets/$TICKET_ID/status \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"status": "RESOLVED", "note": "已处理完毕"}'
+```
+
+期望: MUBS 后端日志输出 `HVAS status updated for event <id>: resolved`
+
+如果 HVAS 未运行, 日志输出 `Failed to update HVAS event ... status to resolved: ...` (不影响主流程)
 
 ---
 
