@@ -13,6 +13,7 @@ data class User(
     val role: UserRole,
     val team: String? = null,
     val email: String? = null,
+    val phone: String? = null,
     val displayName: String? = null,
     val enabled: Boolean = true
 )

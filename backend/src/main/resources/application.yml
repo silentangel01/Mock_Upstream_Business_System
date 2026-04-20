@@ -7,18 +7,18 @@ spring:
       max-request-size: 10MB
   data:
     mongodb:
-      uri: ${MONGODB_URI:mongodb://localhost:27018/mubs}
+      uri: ${MONGODB_URI:mongodb://localhost:27017/mubs}
   mail:
-    host: ${MAIL_HOST:smtp.example.com}
-    port: ${MAIL_PORT:587}
-    username: ${MAIL_USERNAME:}
-    password: ${MAIL_PASSWORD:}
+    host: ${MAIL_HOST:smtpdm.aliyun.com}
+    port: ${MAIL_PORT:465}
+    username: ${ALIYUN_MAIL_USER:}
+    password: ${ALIYUN_MAIL_PASSWORD:}
     properties:
       mail:
         smtp:
           auth: true
-          starttls.enable: true
-    enabled: ${MAIL_ENABLED:false}
+          ssl.enable: true
+          starttls.enable: false
 
 server:
   port: ${SERVER_PORT:8090}
@@ -42,6 +42,18 @@ mubs:
     enabled: ${DEMO_ENABLED:true}
   h5:
     base-url: ${H5_BASE_URL:http://localhost:5173}
+  notification:
+    email:
+      enabled: ${EMAIL_ENABLED:false}
+      from: ${ALIYUN_MAIL_FROM:noreply@yourdomain.com}
+    sms:
+      enabled: ${SMS_ENABLED:false}
+      access-key-id: ${ALIYUN_SMS_ACCESS_KEY_ID:}
+      access-key-secret: ${ALIYUN_SMS_ACCESS_KEY_SECRET:}
+      sign-name: ${ALIYUN_SMS_SIGN_NAME:MUBS城管}
+      template-code:
+        dispatch: ${ALIYUN_SMS_TPL_DISPATCH:SMS_000001}
+        timeout: ${ALIYUN_SMS_TPL_TIMEOUT:SMS_000002}
 
 logging:
   level:

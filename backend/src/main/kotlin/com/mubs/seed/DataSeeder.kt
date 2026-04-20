@@ -59,7 +59,8 @@ class DataSeeder(
                 role = UserRole.FIELDWORKER,
                 team = "fire_team",
                 displayName = "Zhang Fieldworker",
-                email = "zhang@mubs.local"
+                email = "zhang@mubs.local",
+                phone = "13800000001"
             ),
             User(
                 username = "worker_li",
@@ -67,7 +68,8 @@ class DataSeeder(
                 role = UserRole.FIELDWORKER,
                 team = "traffic_team",
                 displayName = "Li Fieldworker",
-                email = "li@mubs.local"
+                email = "li@mubs.local",
+                phone = "13800000002"
             ),
             User(
                 username = "worker_chen",
@@ -75,7 +77,8 @@ class DataSeeder(
                 role = UserRole.FIELDWORKER,
                 team = "urban_mgmt_team",
                 displayName = "Chen Fieldworker",
-                email = "chen@mubs.local"
+                email = "chen@mubs.local",
+                phone = "13800000003"
             )
         )
         userRepository.saveAll(users)

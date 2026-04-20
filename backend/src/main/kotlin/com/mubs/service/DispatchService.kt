@@ -15,6 +15,7 @@ import java.time.Instant
 class DispatchService(
     private val dispatchRuleRepository: DispatchRuleRepository,
     private val ticketRepository: TicketRepository,
+    private val notificationService: NotificationService,
     @Value("\${mubs.dispatch.timeout-minutes}") private val timeoutMinutes: Long
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
@@ -63,6 +64,7 @@ class DispatchService(
                 )
             )
             ticketRepository.save(ticket)
+            notificationService.notifyDispatchTimeout(ticket)
             log.info("Ticket {} returned due to dispatch timeout", ticket.id)
         }
     }
