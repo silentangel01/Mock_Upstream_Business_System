@@ -1,8 +1,8 @@
-import { createRouter, createWebHistory } from 'vue-router'
+import { createRouter, createWebHashHistory } from 'vue-router'
 import { useAuthStore } from '@shared/stores/auth'
 
 const router = createRouter({
-  history: createWebHistory('/index-h5.html'),
+  history: createWebHashHistory(),
   routes: [
     {
       path: '/login',
