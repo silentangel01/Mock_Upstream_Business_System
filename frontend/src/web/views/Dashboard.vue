@@ -110,9 +110,13 @@ const eventChartOption = computed(() => ({
 }))
 
 async function loadData() {
-  const [s, t] = await Promise.all([getTicketStats(), listTickets({ size: 5 })])
-  stats.value = s.data
-  recentTickets.value = t.data.content
+  try {
+    const [s, t] = await Promise.all([getTicketStats(), listTickets({ size: 5 })])
+    stats.value = s.data
+    recentTickets.value = t.data.content
+  } catch (e) {
+    console.error('Failed to load dashboard data:', e)
+  }
 }
 
 async function simulate() {
