@@ -21,10 +21,13 @@
        │                  │                  │
        ▼                  ▼                  ▼
 ┌────────────┐   ┌──────────────┐   ┌──────────────────┐
-│ Web 管理端  │   │  移动端 APP   │   │  阿里云通知服务   │
-│ Vue 3 +    │   │ Compose      │   │  DirectMail 邮件  │
-│ Element    │   │ Multiplatform│   │  SMS 短信         │
-│ Plus       │   │ (Android/iOS)│   │                  │
+│ Web 管理端  │   │ Compose      │   │  阿里云通知服务   │
+│ Vue 3 +    │   │ Multiplatform│   │  DirectMail 邮件  │
+│ Element    │   │ ┌──────────┐ │   │  SMS 短信         │
+│ Plus       │   │ │ Android  │ │   │                  │
+│            │   │ │ iOS      │ │   │                  │
+│            │   │ │ Desktop  │ │   │                  │
+│            │   │ └──────────┘ │   │                  │
 └────────────┘   └──────────────┘   └──────────────────┘
 ```
 
@@ -35,7 +38,7 @@
 | 后端 | Kotlin Spring Boot 3.x, 端口 8090 |
 | 数据库 | MongoDB (端口 27018) |
 | Web 管理端 | Vue 3 + TypeScript + Element Plus + ECharts |
-| 移动端 APP | Compose Multiplatform (Android + iOS) |
+| 移动端 + 桌面端 | Compose Multiplatform (Android + iOS + Desktop JVM) |
 | 消息通知 | WebSocket (STOMP) + 阿里云 DirectMail + 阿里云 SMS |
 | 构建工具 | Gradle 9.4.1 (后端), Vite (Web), Gradle KMP (APP) |
 | JDK | 21+ (开发环境 Zulu 25) |
@@ -84,11 +87,11 @@ D:\mubs\
 │           │   └── DispatchRules.vue   # CRUD (ADMIN)
 │           ├── layouts/DefaultLayout.vue
 │           └── router/index.ts
-├── mobile\                            # Compose Multiplatform APP (新)
+├── mobile\                            # Compose Multiplatform (新)
 │   ├── build.gradle.kts               # KMP 构建脚本
 │   ├── composeApp/
 │   │   ├── src/
-│   │   │   ├── commonMain/            # 共享代码
+│   │   │   ├── commonMain/            # 共享代码 (Android/iOS/Desktop 复用)
 │   │   │   │   ├── data/              # API 客户端 (Ktor)
 │   │   │   │   ├── domain/            # 数据模型 + 状态机
 │   │   │   │   └── ui/                # Compose UI
@@ -96,9 +99,11 @@ D:\mubs\
 │   │   │   │       ├── components/    # 通用组件
 │   │   │   │       └── theme/         # Material 3 主题
 │   │   │   ├── androidMain/           # Android 特定 (推送/相机)
-│   │   │   └── iosMain/               # iOS 特定 (推送/相机)
+│   │   │   ├── iosMain/               # iOS 特定 (推送/相机)
+│   │   │   └── desktopMain/           # Desktop (JVM) 特定 (窗口/托盘)
 │   │   └── build.gradle.kts
-│   └── iosApp/                        # iOS Xcode 项目壳
+│   ├── iosApp/                        # iOS Xcode 项目壳
+│   └── desktopApp/                    # Desktop 启动入口 (main.kt)
 └── tests/
     ├── integration_test.sh            # MUBS 集成测试
     └── webhook_integration_test.sh    # Webhook 签名测试
@@ -114,13 +119,14 @@ D:\mubs\
 - 删除 `main-h5.ts` 引导文件
 - 移除 Vant 4 依赖
 
-### 新增: Compose Multiplatform 移动端 APP
-- 技术栈: Compose Multiplatform (Kotlin), 支持 Android + iOS
+### 新增: Compose Multiplatform 客户端 (Android + iOS + Desktop)
+- 技术栈: Compose Multiplatform (Kotlin), 三端共享 UI 和业务逻辑
 - HTTP: Ktor Client + JWT 拦截器
 - 状态管理: ViewModel + StateFlow
 - 导航: Compose Navigation
 - 图片: Coil 3 (Multiplatform)
 - 推送: Firebase Cloud Messaging (Android) / APNs (iOS)
+- Desktop: JVM 目标, 窗口化运行, 方便开发调试和桌面办公场景
 
 ### 新增: 阿里云邮件 + 短信通知
 - 邮件: 阿里云 DirectMail API (SMTP 协议)
@@ -180,13 +186,13 @@ D:\mubs\
 - `DataSeeder.kt` 更新种子用户数据
 - `NotificationService.kt` 整合 WebSocket + Email + SMS
 
-### Phase 6: Compose Multiplatform 移动端 APP
+### Phase 6: Compose Multiplatform 客户端 (Android + iOS + Desktop)
 
 #### 6.1 项目脚手架
 - 初始化 KMP 项目 (`mobile/`)
 - 配置 Gradle: Compose Multiplatform plugin, Ktor, Kotlinx Serialization
-- 共享模块: `commonMain` (API/UI/导航)
-- 平台模块: `androidMain` + `iosMain`
+- 共享模块: `commonMain` (API/UI/导航), 三端复用
+- 平台模块: `androidMain` + `iosMain` + `desktopMain`
 
 #### 6.2 共享数据层 (commonMain)
 - `data/api/MubsApiClient.kt`: Ktor HttpClient + JWT Bearer 拦截器
@@ -213,14 +219,20 @@ D:\mubs\
 - APNs 推送集成
 - UIKit 相机桥接
 
-#### 6.6 APP 功能清单
+#### 6.6 Desktop 特定 (JVM)
+- `desktopMain/`: Desktop 入口 `main.kt`, 窗口配置 (标题/尺寸/图标)
+- 系统托盘通知 (新工单弹窗)
+- 文件选择器替代相机拍照 (桌面无摄像头场景)
+- 开发调试用: `./gradlew :composeApp:run` 直接启动, 无需模拟器
 
-| 页面 | 功能 |
-|------|------|
-| 登录 | 用户名/密码 → JWT |
-| 任务列表 | 下拉刷新, 按状态筛选, 显示本团队工单 |
-| 任务详情 | 基本信息, 证据图片, 时间线, 状态操作按钮 |
-| 处置上报 | 拍照 + 备注 → 上传照片 → RESOLVED |
+#### 6.7 功能清单 (三端共享)
+
+| 页面 | 功能 | Desktop 差异 |
+|------|------|-------------|
+| 登录 | 用户名/密码 → JWT | 同 |
+| 任务列表 | 下拉刷新, 按状态筛选, 本团队工单 | 滚动替代下拉刷新 |
+| 任务详情 | 信息卡片, 证据图片, 时间线, 操作按钮 | 同 |
+| 处置上报 | 拍照 + 备注 → 上传 → RESOLVED | 文件选择器替代拍照 |
 | 历史工单 | RESOLVED/CLOSED 列表 |
 | 推送通知 | 新工单派遣时推送到外勤人员手机 |
 
