@@ -9,10 +9,7 @@ import com.mubs.service.WebhookVerificationService
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
-import org.springframework.web.util.ContentCachingRequestWrapper
+import org.springframework.web.bind.annotation.*
 import jakarta.servlet.http.HttpServletRequest
 
 @RestController
@@ -27,17 +24,9 @@ class HvasWebhookController(
     private val log = LoggerFactory.getLogger(javaClass)
 
     @PostMapping("/webhook")
-    fun receiveWebhook(request: HttpServletRequest): ResponseEntity<Map<String, Any>> {
-        val cachedRequest = request as? ContentCachingRequestWrapper
-            ?: return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(mapOf("error" to "Request not cached"))
-
-        // Read body — must read input stream first to populate cache
-        val body = cachedRequest.inputStream.readAllBytes()
-        val rawBody = if (body.isNotEmpty()) body else cachedRequest.contentAsByteArray
-
+    fun receiveWebhook(@RequestBody rawBody: ByteArray, request: HttpServletRequest): ResponseEntity<Map<String, Any>> {
         // Verify HMAC signature
-        val signature = cachedRequest.getHeader("X-HVAS-Signature")
+        val signature = request.getHeader("X-HVAS-Signature")
         if (!webhookVerificationService.verifySignature(rawBody, signature)) {
             log.warn("Webhook signature verification failed")
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
@@ -48,7 +37,7 @@ class HvasWebhookController(
         val payload = try {
             objectMapper.readValue(rawBody, HvasWebhookPayload::class.java)
         } catch (e: Exception) {
-            log.error("Failed to parse webhook payload", e)
+            log.error("Failed to parse webhook payload: {}", e.message)
             return ResponseEntity.badRequest()
                 .body(mapOf("error" to "Invalid payload"))
         }
@@ -65,9 +54,10 @@ class HvasWebhookController(
         // Auto-dispatch
         val dispatched = dispatchService.autoDispatch(ticket)
 
-        // Notify
+        // Notify via WebSocket
         notificationService.notifyNewTicket(dispatched)
 
+        log.info("Webhook processed: ticket={}, team={}", dispatched.id, dispatched.assignedTeam)
         return ResponseEntity.status(HttpStatus.CREATED)
             .body(mapOf(
                 "status" to "created",
