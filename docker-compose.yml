@@ -1,0 +1,26 @@
+services:
+  mongodb:
+    image: mongo:7
+    container_name: mubs-mongodb
+    ports:
+      - "27018:27017"
+    volumes:
+      - mubs-mongo-data:/data/db
+    environment:
+      MONGO_INITDB_DATABASE: mubs
+    restart: unless-stopped
+
+  backend:
+    build: ./backend
+    container_name: mubs-backend
+    ports:
+      - "8090:8090"
+    environment:
+      MONGODB_URI: mongodb://mongodb:27017/mubs
+      HVAS_WEBHOOK_SECRET: hvas-mubs-shared-secret
+    depends_on:
+      - mongodb
+    restart: unless-stopped
+
+volumes:
+  mubs-mongo-data:

@@ -1,0 +1,49 @@
+spring:
+  application:
+    name: mubs-backend
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+  data:
+    mongodb:
+      uri: ${MONGODB_URI:mongodb://localhost:27018/mubs}
+  mail:
+    host: ${MAIL_HOST:smtp.example.com}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls.enable: true
+    enabled: ${MAIL_ENABLED:false}
+
+server:
+  port: ${SERVER_PORT:8090}
+
+mubs:
+  jwt:
+    secret: ${JWT_SECRET:mubs-default-jwt-secret-key-change-in-production-min-32-chars!!}
+    expiration-ms: ${JWT_EXPIRATION_MS:86400000}
+  hvas:
+    webhook-secret: ${HVAS_WEBHOOK_SECRET:hvas-mubs-shared-secret}
+    base-url: ${HVAS_BASE_URL:http://localhost:8000}
+    api-key: ${HVAS_API_KEY:}
+    polling:
+      enabled: ${HVAS_POLLING_ENABLED:false}
+      interval-ms: ${HVAS_POLLING_INTERVAL_MS:30000}
+  dispatch:
+    timeout-minutes: ${DISPATCH_TIMEOUT_MINUTES:30}
+  upload:
+    photo-dir: ${UPLOAD_PHOTO_DIR:./uploads/photos}
+  demo:
+    enabled: ${DEMO_ENABLED:true}
+  h5:
+    base-url: ${H5_BASE_URL:http://localhost:5173}
+
+logging:
+  level:
+    com.mubs: DEBUG
+    org.springframework.data.mongodb: INFO
