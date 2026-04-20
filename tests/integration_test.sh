@@ -10,7 +10,7 @@
 
 set -e
 
-HVAS_URL="http://localhost:8000"
+HVAS_URL="http://localhost:5000"
 MUBS_URL="http://localhost:8090"
 GREEN='\033[0;32m'
 RED='\033[0;31m'

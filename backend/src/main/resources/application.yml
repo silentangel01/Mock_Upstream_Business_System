@@ -29,7 +29,7 @@ mubs:
     expiration-ms: ${JWT_EXPIRATION_MS:86400000}
   hvas:
     webhook-secret: ${HVAS_WEBHOOK_SECRET:hvas-mubs-shared-secret}
-    base-url: ${HVAS_BASE_URL:http://localhost:8000}
+    base-url: ${HVAS_BASE_URL:http://localhost:5000}
     api-key: ${HVAS_API_KEY:}
     polling:
       enabled: ${HVAS_POLLING_ENABLED:false}
