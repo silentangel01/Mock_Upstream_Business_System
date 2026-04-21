@@ -83,7 +83,7 @@
       <el-form>
         <el-form-item label="目标人员">
           <el-select v-model="reassignUser" style="width:100%" filterable placeholder="选择人员">
-            <el-option v-for="fw in fieldworkers" :key="fw.username"
+            <el-option v-for="fw in availableFieldworkers" :key="fw.username"
               :label="`${fw.displayName || fw.username} (${fw.team || '-'})`" :value="fw.username" />
           </el-select>
         </el-form-item>
@@ -151,6 +151,9 @@ const reassignVisible = ref(false)
 const reassignUser = ref('')
 const reassignNote = ref('')
 const fieldworkers = ref<Fieldworker[]>([])
+const availableFieldworkers = computed(() =>
+  fieldworkers.value.filter(fw => fw.username !== ticket.value?.assignedUser)
+)
 
 async function loadFieldworkers() {
   try {

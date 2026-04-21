@@ -50,7 +50,7 @@ class NotificationService(
                     setVariable("eventType", ticket.eventType)
                     setVariable("description", ticket.description ?: "—")
                     setVariable("team", ticket.assignedTeam ?: "")
-                    setVariable("actionUrl", "$h5BaseUrl/tickets/${ticket.id}")
+                    setVariable("actionUrl", buildTicketUrl(ticket, targetUser.role))
                 }
                 val html = templateEngine.process("email/new-ticket", ctx)
                 sendHtmlEmail(ticket, targetUser.email!!, subject, html)
@@ -75,15 +75,15 @@ class NotificationService(
 
             if (emailEnabled) {
                 val subject = "新工单通知：${ticket.eventType}"
-                val ctx = Context().apply {
-                    setVariable("ticketId", ticket.id ?: "")
-                    setVariable("eventType", ticket.eventType)
-                    setVariable("description", ticket.description ?: "—")
-                    setVariable("team", team)
-                    setVariable("actionUrl", "$h5BaseUrl/tickets/${ticket.id}")
-                }
-                val html = templateEngine.process("email/new-ticket", ctx)
                 teamUsers.filter { !it.email.isNullOrBlank() }.forEach { user ->
+                    val ctx = Context().apply {
+                        setVariable("ticketId", ticket.id ?: "")
+                        setVariable("eventType", ticket.eventType)
+                        setVariable("description", ticket.description ?: "—")
+                        setVariable("team", team)
+                        setVariable("actionUrl", buildTicketUrl(ticket, user.role))
+                    }
+                    val html = templateEngine.process("email/new-ticket", ctx)
                     sendHtmlEmail(ticket, user.email!!, subject, html)
                 }
             }
@@ -126,7 +126,7 @@ class NotificationService(
                 setVariable("eventType", ticket.eventType)
                 setVariable("description", ticket.description ?: "—")
                 setVariable("timeoutMinutes", timeoutMinutes)
-                setVariable("actionUrl", "$h5BaseUrl/tickets/${ticket.id}")
+                setVariable("actionUrl", buildTicketUrl(ticket, UserRole.ADMIN))
             }
             val html = templateEngine.process("email/dispatch-timeout", ctx)
             admins.forEach { admin ->
@@ -156,12 +156,20 @@ class NotificationService(
         }
     }
 
+    private fun buildTicketUrl(ticket: Ticket, role: UserRole?): String {
+        val ticketId = ticket.id ?: ""
+        return when (role) {
+            UserRole.FIELDWORKER -> "$h5BaseUrl/index-h5.html#/tasks/$ticketId"
+            else -> "$h5BaseUrl/tickets/$ticketId"
+        }
+    }
+
     private fun sendWebSocket(ticket: Ticket, message: String) {
         try {
             val payload = mapOf(
                 "ticket" to ticket,
                 "message" to message,
-                "actionUrl" to "$h5BaseUrl/tickets/${ticket.id}"
+                "actionUrl" to buildTicketUrl(ticket, null)
             )
             messagingTemplate.convertAndSend("/topic/tickets/all", payload)
             if (ticket.assignedTeam != null) {

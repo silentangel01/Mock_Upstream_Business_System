@@ -74,6 +74,7 @@ data class TicketDetailScreen(val ticketId: String) : Screen {
         if (state.showReassignSheet) {
             ReassignSheet(
                 fieldworkers = state.fieldworkers,
+                currentUser = state.ticket?.assignedUser,
                 onConfirm = { user, note -> model.confirmReassign(user, note) },
                 onDismiss = model::dismissDialog
             )
@@ -304,20 +305,22 @@ private fun NoteDialog(onConfirm: (String?) -> Unit, onDismiss: () -> Unit) {
 @Composable
 private fun ReassignSheet(
     fieldworkers: List<Fieldworker>,
+    currentUser: String?,
     onConfirm: (String, String?) -> Unit,
     onDismiss: () -> Unit
 ) {
     var selectedUser by remember { mutableStateOf("") }
     var note by remember { mutableStateOf("") }
+    val available = fieldworkers.filter { it.username != currentUser }
 
     ModalBottomSheet(onDismissRequest = onDismiss) {
         Column(Modifier.padding(24.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Text("改派工单", style = MaterialTheme.typography.titleMedium)
 
-            if (fieldworkers.isEmpty()) {
+            if (available.isEmpty()) {
                 Text("加载人员列表中...", style = MaterialTheme.typography.bodySmall)
             } else {
-                fieldworkers.forEach { fw ->
+                available.forEach { fw ->
                     val label = "${fw.displayName ?: fw.username} (${fw.team ?: "-"})"
                     OutlinedButton(
                         onClick = { selectedUser = fw.username },

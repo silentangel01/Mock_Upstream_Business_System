@@ -27,7 +27,8 @@ class TicketService(
     private val ticketRepository: TicketRepository,
     private val mongoTemplate: MongoTemplate,
     private val hvasApiClient: HvasApiClient,
-    private val userRepository: com.mubs.repository.UserRepository
+    private val userRepository: com.mubs.repository.UserRepository,
+    private val notificationService: NotificationService
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -152,7 +153,9 @@ class TicketService(
             )
         )
         log.info("Ticket {} reassigned to user {} (team {}) by {}", id, target.username, target.team, actor)
-        return ticketRepository.save(ticket)
+        val saved = ticketRepository.save(ticket)
+        notificationService.notifyNewTicket(saved)
+        return saved
     }
 
     fun listFieldworkers(team: String?): List<FieldworkerDto> {
