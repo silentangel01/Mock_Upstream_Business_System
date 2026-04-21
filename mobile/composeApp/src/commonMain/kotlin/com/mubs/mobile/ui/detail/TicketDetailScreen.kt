@@ -1,16 +1,23 @@
 package com.mubs.mobile.ui.detail
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -37,10 +44,16 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
+import coil3.compose.AsyncImage
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
+import com.mubs.mobile.data.api.platformBaseUrl
 import com.mubs.mobile.data.model.Fieldworker
 import com.mubs.mobile.data.model.Ticket
 import com.mubs.mobile.data.model.TicketStatus
@@ -162,6 +175,23 @@ private fun TicketContent(
             }
         }
 
+        // Event evidence image
+        if (!ticket.imageUrl.isNullOrBlank()) {
+            val baseUrl = remember { platformBaseUrl() }
+            val evidenceUrl = if (ticket.imageUrl.startsWith("http")) ticket.imageUrl else "${baseUrl}${ticket.imageUrl}"
+            Text("事件证据", style = MaterialTheme.typography.titleMedium)
+            AsyncImage(
+                model = evidenceUrl,
+                contentDescription = "事件证据图片",
+                contentScale = ContentScale.Fit,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .aspectRatio(16f / 9f)
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(Color.Black)
+            )
+        }
+
         // Action buttons
         if (!actionInProgress) {
             ActionButtons(ticket, role, onStatusUpdate, onReassign)
@@ -178,9 +208,45 @@ private fun TicketContent(
 
         // Handle photos
         if (ticket.handlePhotos.isNotEmpty()) {
+            var selectedPhotoUrl by remember { mutableStateOf<String?>(null) }
+            val baseUrl = remember { platformBaseUrl() }
+
             Text("处理照片 (${ticket.handlePhotos.size})", style = MaterialTheme.typography.titleMedium)
-            ticket.handlePhotos.forEach { url ->
-                Text(url, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary)
+            LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                items(ticket.handlePhotos) { path ->
+                    val fullUrl = if (path.startsWith("http")) path else "${baseUrl}${path}"
+                    AsyncImage(
+                        model = fullUrl,
+                        contentDescription = "处理照片",
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .size(100.dp)
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(Color.Black)
+                            .clickable { selectedPhotoUrl = fullUrl }
+                    )
+                }
+            }
+
+            if (selectedPhotoUrl != null) {
+                Dialog(onDismissRequest = { selectedPhotoUrl = null }) {
+                    Box(
+                        Modifier
+                            .fillMaxSize()
+                            .background(Color.Black.copy(alpha = 0.9f))
+                            .clickable { selectedPhotoUrl = null },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        AsyncImage(
+                            model = selectedPhotoUrl,
+                            contentDescription = "照片大图",
+                            contentScale = ContentScale.Fit,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp)
+                        )
+                    }
+                }
             }
         }
 

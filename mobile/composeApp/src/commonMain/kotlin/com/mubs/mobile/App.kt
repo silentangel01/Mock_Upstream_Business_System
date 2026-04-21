@@ -9,6 +9,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import cafe.adriel.voyager.navigator.CurrentScreen
 import cafe.adriel.voyager.navigator.Navigator
+import coil3.compose.setSingletonImageLoaderFactory
+import coil3.ImageLoader
+import coil3.network.ktor3.KtorNetworkFetcherFactory
 import com.mubs.mobile.di.AppModule
 import com.mubs.mobile.navigation.DeepLink
 import com.mubs.mobile.ui.detail.TicketDetailScreen
@@ -18,6 +21,13 @@ import com.mubs.mobile.ui.tickets.TicketListScreen
 
 @Composable
 fun App() {
+    setSingletonImageLoaderFactory { context ->
+        ImageLoader.Builder(context)
+            .components {
+                add(KtorNetworkFetcherFactory(httpClient = AppModule.instance.httpClient))
+            }
+            .build()
+    }
     var startScreen by remember { mutableStateOf<Any?>(null) }
 
     LaunchedEffect(Unit) {
