@@ -11,6 +11,10 @@
           <el-icon><Tickets /></el-icon>
           <span>工单管理</span>
         </el-menu-item>
+        <el-menu-item index="/globe">
+          <el-icon><Aim /></el-icon>
+          <span>3D 地球</span>
+        </el-menu-item>
         <el-menu-item v-if="auth.isAdmin" index="/dispatch-rules">
           <el-icon><Setting /></el-icon>
           <span>派遣规则</span>
@@ -49,7 +53,7 @@ import { useNotificationStore } from '@shared/stores/notification'
 import { connectWebSocket, disconnectWebSocket } from '@shared/services/websocket'
 import { onMounted, onUnmounted, watch } from 'vue'
 import { ElNotification } from 'element-plus'
-import { DataAnalysis, Tickets, Setting, Bell, ArrowDown } from '@element-plus/icons-vue'
+import { DataAnalysis, Tickets, Setting, Bell, ArrowDown, Aim } from '@element-plus/icons-vue'
 
 const route = useRoute()
 const router = useRouter()

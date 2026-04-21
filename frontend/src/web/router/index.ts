@@ -18,6 +18,7 @@ const router = createRouter({
         { path: 'dashboard', name: 'Dashboard', component: () => import('@web/views/Dashboard.vue') },
         { path: 'tickets', name: 'TicketList', component: () => import('@web/views/TicketList.vue') },
         { path: 'tickets/:id', name: 'TicketDetail', component: () => import('@web/views/TicketDetail.vue') },
+        { path: 'globe', name: 'Globe', component: () => import('@web/views/GlobeView.vue') },
         {
           path: 'dispatch-rules',
           name: 'DispatchRules',
