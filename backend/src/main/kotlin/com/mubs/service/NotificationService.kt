@@ -159,7 +159,7 @@ class NotificationService(
     private fun buildTicketUrl(ticket: Ticket, role: UserRole?): String {
         val ticketId = ticket.id ?: ""
         return when (role) {
-            UserRole.FIELDWORKER -> "$h5BaseUrl/index-h5.html#/tasks/$ticketId"
+            UserRole.FIELDWORKER -> "mubs://tickets/$ticketId"
             else -> "$h5BaseUrl/tickets/$ticketId"
         }
     }
