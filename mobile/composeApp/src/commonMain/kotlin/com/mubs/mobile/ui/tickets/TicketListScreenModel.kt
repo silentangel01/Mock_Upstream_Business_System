@@ -77,7 +77,12 @@ class TicketListScreenModel(
                 status = current.selectedStatus,
                 page = if (reset) 0 else current.currentPage
             ).onSuccess { page ->
-                val tickets = if (reset) page.content else current.tickets + page.content
+                val tickets = if (reset) {
+                    page.content
+                } else {
+                    val existingIds = current.tickets.mapNotNull { it.id }.toSet()
+                    current.tickets + page.content.filter { it.id !in existingIds }
+                }
                 _state.value = _state.value.copy(
                     tickets = tickets,
                     isLoading = false,
