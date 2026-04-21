@@ -17,15 +17,20 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
@@ -99,7 +104,11 @@ data class TicketDetailScreen(val ticketId: String) : Screen {
                     title = { Text("Ticket Details") },
                     navigationIcon = {
                         IconButton(onClick = { navigator.pop() }) {
-                            Text("<", color = MaterialTheme.colorScheme.onPrimary)
+                            Icon(
+                                Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = "Back",
+                                tint = MaterialTheme.colorScheme.onPrimary
+                            )
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
@@ -164,7 +173,11 @@ private fun TicketContent(
         }
 
         // Info card
-        Card(Modifier.fillMaxWidth()) {
+        Card(
+            Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(12.dp),
+            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        ) {
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 InfoRow("Camera", ticket.cameraId)
                 ticket.location?.let { InfoRow("Location", it) }
@@ -293,17 +306,29 @@ private fun ActionButtons(
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         when (ticket.status) {
             TicketStatus.DISPATCHED -> if (isFieldworker) {
-                Button(onClick = { onStatusUpdate("ACCEPTED") }, Modifier.fillMaxWidth()) {
+                Button(
+                    onClick = { onStatusUpdate("ACCEPTED") },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
                     Text("Accept")
                 }
             }
             TicketStatus.ACCEPTED -> if (isFieldworker) {
-                Button(onClick = { onStatusUpdate("IN_PROGRESS") }, Modifier.fillMaxWidth()) {
+                Button(
+                    onClick = { onStatusUpdate("IN_PROGRESS") },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
                     Text("Start")
                 }
             }
             TicketStatus.IN_PROGRESS -> if (isFieldworker) {
-                Button(onClick = { onStatusUpdate("RESOLVED") }, Modifier.fillMaxWidth()) {
+                Button(
+                    onClick = { onStatusUpdate("RESOLVED") },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
                     Text("Resolve")
                 }
             }
@@ -314,6 +339,7 @@ private fun ActionButtons(
             OutlinedButton(
                 onClick = onReassign,
                 modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.outlinedButtonColors(
                     contentColor = MaterialTheme.colorScheme.secondary
                 )
@@ -326,22 +352,31 @@ private fun ActionButtons(
 
 @Composable
 private fun TimelineItem(entry: TimelineEntry) {
-    Column(Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            Text(entry.action, style = MaterialTheme.typography.bodyMedium)
+    Row(Modifier.fillMaxWidth().padding(vertical = 6.dp)) {
+        Box(
+            Modifier
+                .padding(top = 6.dp)
+                .size(8.dp)
+                .background(MaterialTheme.colorScheme.primary, CircleShape)
+        )
+        Spacer(Modifier.width(12.dp))
+        Column(Modifier.weight(1f)) {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                Text(entry.action, style = MaterialTheme.typography.bodyMedium)
+                Text(
+                    entry.timestamp.take(16).replace("T", " "),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
             Text(
-                entry.timestamp.take(16).replace("T", " "),
+                "By: ${entry.actor}",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
-        }
-        Text(
-                        "By: ${entry.actor}",
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        entry.note?.let {
-            Text(it, style = MaterialTheme.typography.bodySmall)
+            entry.note?.let {
+                Text(it, style = MaterialTheme.typography.bodySmall)
+            }
         }
     }
 }
