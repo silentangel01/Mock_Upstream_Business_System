@@ -24,6 +24,12 @@ const router = createRouter({
           component: () => import('@web/views/DispatchRules.vue'),
           meta: { roles: ['ADMIN'] },
         },
+        {
+          path: 'users',
+          name: 'UserManager',
+          component: () => import('@web/views/UserManager.vue'),
+          meta: { roles: ['ADMIN'] },
+        },
       ],
     },
   ],

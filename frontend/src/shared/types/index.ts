@@ -98,3 +98,33 @@ export interface TicketQuery {
   page?: number
   size?: number
 }
+
+export interface User {
+  id: string
+  username: string
+  role: UserRole
+  team?: string
+  email?: string
+  phone?: string
+  displayName?: string
+  enabled: boolean
+}
+
+export interface CreateUserDto {
+  username: string
+  password: string
+  role: UserRole
+  team?: string
+  email?: string
+  phone?: string
+  displayName?: string
+}
+
+export interface UpdateUserDto {
+  email?: string
+  phone?: string
+  displayName?: string
+  team?: string
+  role?: UserRole
+  enabled?: boolean
+}

@@ -15,6 +15,10 @@
           <el-icon><Setting /></el-icon>
           <span>派遣规则</span>
         </el-menu-item>
+        <el-menu-item v-if="auth.isAdmin" index="/users">
+          <el-icon><User /></el-icon>
+          <span>用户管理</span>
+        </el-menu-item>
       </el-menu>
     </el-aside>
     <el-container>
@@ -49,7 +53,7 @@ import { useNotificationStore } from '@shared/stores/notification'
 import { connectWebSocket, disconnectWebSocket } from '@shared/services/websocket'
 import { onMounted, onUnmounted, watch } from 'vue'
 import { ElNotification } from 'element-plus'
-import { DataAnalysis, Tickets, Setting, Bell, ArrowDown } from '@element-plus/icons-vue'
+import { DataAnalysis, Tickets, Setting, Bell, ArrowDown, User } from '@element-plus/icons-vue'
 
 const route = useRoute()
 const router = useRouter()
