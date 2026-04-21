@@ -1,5 +1,5 @@
 import client from './client'
-import type { Ticket, Page, TicketQuery, TicketStats } from '@shared/types'
+import type { Ticket, Page, TicketQuery, TicketStats, Fieldworker } from '@shared/types'
 
 export function listTickets(query: TicketQuery = {}) {
   return client.get<Page<Ticket>>('/tickets', { params: query })
@@ -13,8 +13,12 @@ export function updateTicketStatus(id: string, status: string, note?: string) {
   return client.patch<Ticket>(`/tickets/${id}/status`, { status, note })
 }
 
-export function reassignTicket(id: string, targetTeam: string, note?: string) {
-  return client.patch<Ticket>(`/tickets/${id}/reassign`, { targetTeam, note })
+export function reassignTicket(id: string, targetUser: string, note?: string) {
+  return client.patch<Ticket>(`/tickets/${id}/reassign`, { targetUser, note })
+}
+
+export function listFieldworkers(team?: string) {
+  return client.get<Fieldworker[]>('/tickets/fieldworkers', { params: team ? { team } : {} })
 }
 
 export function uploadPhoto(id: string, file: File) {

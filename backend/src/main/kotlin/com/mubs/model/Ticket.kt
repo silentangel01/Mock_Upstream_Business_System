@@ -24,7 +24,7 @@ data class Ticket(
     val group: String? = null,
     @Indexed var status: TicketStatus = TicketStatus.PENDING,
     @Indexed var assignedTeam: String? = null,
-    var assignedUser: String? = null,
+    @Indexed var assignedUser: String? = null,
     var dispatchedAt: Instant? = null,
     var resolvedAt: Instant? = null,
     var closedAt: Instant? = null,

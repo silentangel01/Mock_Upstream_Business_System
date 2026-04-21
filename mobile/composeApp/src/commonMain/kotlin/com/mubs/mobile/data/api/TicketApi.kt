@@ -1,5 +1,6 @@
 package com.mubs.mobile.data.api
 
+import com.mubs.mobile.data.model.Fieldworker
 import com.mubs.mobile.data.model.PageResponse
 import com.mubs.mobile.data.model.ReassignRequest
 import com.mubs.mobile.data.model.Ticket
@@ -52,12 +53,20 @@ class TicketApi(private val client: HttpClient) {
 
     suspend fun reassign(
         id: String,
-        targetTeam: String,
+        targetUser: String,
         note: String? = null
     ): Result<Ticket> {
         return runCatching {
             client.patch("/api/tickets/$id/reassign") {
-                setBody(ReassignRequest(targetTeam, note))
+                setBody(ReassignRequest(targetUser, note))
+            }.body()
+        }
+    }
+
+    suspend fun listFieldworkers(team: String? = null): Result<List<Fieldworker>> {
+        return runCatching {
+            client.get("/api/tickets/fieldworkers") {
+                team?.let { parameter("team", it) }
             }.body()
         }
     }

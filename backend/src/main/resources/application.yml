@@ -46,6 +46,7 @@ mubs:
     email:
       enabled: ${EMAIL_ENABLED:false}
       from: ${ALIYUN_MAIL_FROM:noreply@yourdomain.com}
+      from-name: ${ALIYUN_MAIL_FROM_NAME:MUBS城管系统}
     sms:
       enabled: ${SMS_ENABLED:false}
       access-key-id: ${ALIYUN_SMS_ACCESS_KEY_ID:}

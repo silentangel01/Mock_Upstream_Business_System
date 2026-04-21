@@ -57,12 +57,13 @@ class HvasWebhookController(
         // Notify via WebSocket
         notificationService.notifyNewTicket(dispatched)
 
-        log.info("Webhook processed: ticket={}, team={}", dispatched.id, dispatched.assignedTeam)
+        log.info("Webhook processed: ticket={}, team={}, user={}", dispatched.id, dispatched.assignedTeam, dispatched.assignedUser)
         return ResponseEntity.status(HttpStatus.CREATED)
             .body(mapOf(
                 "status" to "created",
                 "ticket_id" to (dispatched.id ?: ""),
-                "assigned_team" to (dispatched.assignedTeam ?: "unassigned")
+                "assigned_team" to (dispatched.assignedTeam ?: "unassigned"),
+                "assigned_user" to (dispatched.assignedUser ?: "unassigned")
             ))
     }
 }

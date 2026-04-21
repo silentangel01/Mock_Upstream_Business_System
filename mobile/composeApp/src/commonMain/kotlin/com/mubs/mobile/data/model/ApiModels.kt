@@ -21,6 +21,13 @@ data class TicketStatusUpdateRequest(
 
 @Serializable
 data class ReassignRequest(
-    val targetTeam: String,
+    val targetUser: String,
     val note: String? = null
+)
+
+@Serializable
+data class Fieldworker(
+    val username: String,
+    val displayName: String? = null,
+    val team: String? = null
 )

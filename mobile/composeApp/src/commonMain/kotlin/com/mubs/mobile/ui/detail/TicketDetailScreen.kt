@@ -41,6 +41,7 @@ import androidx.compose.ui.unit.dp
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
+import com.mubs.mobile.data.model.Fieldworker
 import com.mubs.mobile.data.model.Ticket
 import com.mubs.mobile.data.model.TicketStatus
 import com.mubs.mobile.data.model.TimelineEntry
@@ -72,7 +73,8 @@ data class TicketDetailScreen(val ticketId: String) : Screen {
 
         if (state.showReassignSheet) {
             ReassignSheet(
-                onConfirm = { team, note -> model.confirmReassign(team, note) },
+                fieldworkers = state.fieldworkers,
+                onConfirm = { user, note -> model.confirmReassign(user, note) },
                 onDismiss = model::dismissDialog
             )
         }
@@ -301,33 +303,33 @@ private fun NoteDialog(onConfirm: (String?) -> Unit, onDismiss: () -> Unit) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ReassignSheet(
+    fieldworkers: List<Fieldworker>,
     onConfirm: (String, String?) -> Unit,
     onDismiss: () -> Unit
 ) {
-    val teams = listOf("fire_team", "traffic_team", "urban_mgmt_team")
-    val teamLabels = mapOf(
-        "fire_team" to "消防队",
-        "traffic_team" to "交通队",
-        "urban_mgmt_team" to "城管队"
-    )
-    var selectedTeam by remember { mutableStateOf("") }
+    var selectedUser by remember { mutableStateOf("") }
     var note by remember { mutableStateOf("") }
 
     ModalBottomSheet(onDismissRequest = onDismiss) {
         Column(Modifier.padding(24.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Text("改派工单", style = MaterialTheme.typography.titleMedium)
 
-            teams.forEach { team ->
-                OutlinedButton(
-                    onClick = { selectedTeam = team },
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = if (selectedTeam == team)
-                        ButtonDefaults.outlinedButtonColors(
-                            containerColor = MaterialTheme.colorScheme.primaryContainer
-                        )
-                    else ButtonDefaults.outlinedButtonColors()
-                ) {
-                    Text(teamLabels[team] ?: team)
+            if (fieldworkers.isEmpty()) {
+                Text("加载人员列表中...", style = MaterialTheme.typography.bodySmall)
+            } else {
+                fieldworkers.forEach { fw ->
+                    val label = "${fw.displayName ?: fw.username} (${fw.team ?: "-"})"
+                    OutlinedButton(
+                        onClick = { selectedUser = fw.username },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = if (selectedUser == fw.username)
+                            ButtonDefaults.outlinedButtonColors(
+                                containerColor = MaterialTheme.colorScheme.primaryContainer
+                            )
+                        else ButtonDefaults.outlinedButtonColors()
+                    ) {
+                        Text(label)
+                    }
                 }
             }
 
@@ -339,8 +341,8 @@ private fun ReassignSheet(
             )
 
             Button(
-                onClick = { if (selectedTeam.isNotEmpty()) onConfirm(selectedTeam, note.ifBlank { null }) },
-                enabled = selectedTeam.isNotEmpty(),
+                onClick = { if (selectedUser.isNotEmpty()) onConfirm(selectedUser, note.ifBlank { null }) },
+                enabled = selectedUser.isNotEmpty(),
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text("确认改派")

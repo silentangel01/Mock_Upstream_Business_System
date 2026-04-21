@@ -2,6 +2,7 @@ package com.mubs.mobile.data.api
 
 import com.mubs.mobile.domain.SessionManager
 import io.ktor.client.HttpClient
+import io.ktor.client.plugins.HttpResponseValidator
 import io.ktor.client.plugins.HttpSend
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.defaultRequest
@@ -30,6 +31,8 @@ fun createHttpClient(sessionManager: SessionManager): HttpClient {
             url(platformBaseUrl())
             contentType(ContentType.Application.Json)
         }
+
+        expectSuccess = false
     }
 
     client.plugin(HttpSend).intercept { request ->

@@ -79,6 +79,12 @@ export interface DispatchRuleDto {
   enabled: boolean
 }
 
+export interface Fieldworker {
+  username: string
+  displayName?: string
+  team?: string
+}
+
 export interface LoginResponse {
   token: string
   username: string

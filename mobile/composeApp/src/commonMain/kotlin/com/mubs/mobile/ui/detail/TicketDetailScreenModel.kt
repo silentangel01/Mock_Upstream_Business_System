@@ -2,6 +2,7 @@ package com.mubs.mobile.ui.detail
 
 import cafe.adriel.voyager.core.model.ScreenModel
 import cafe.adriel.voyager.core.model.screenModelScope
+import com.mubs.mobile.data.model.Fieldworker
 import com.mubs.mobile.data.model.Ticket
 import com.mubs.mobile.data.repository.AuthRepository
 import com.mubs.mobile.data.repository.TicketRepository
@@ -18,7 +19,8 @@ data class DetailUiState(
     val role: String? = null,
     val showNoteDialog: Boolean = false,
     val pendingAction: String? = null,
-    val showReassignSheet: Boolean = false
+    val showReassignSheet: Boolean = false,
+    val fieldworkers: List<Fieldworker> = emptyList()
 )
 
 class TicketDetailScreenModel(
@@ -88,13 +90,19 @@ class TicketDetailScreenModel(
 
     fun showReassign() {
         _state.value = _state.value.copy(showReassignSheet = true)
+        screenModelScope.launch {
+            ticketRepository.listFieldworkers()
+                .onSuccess { workers ->
+                    _state.value = _state.value.copy(fieldworkers = workers)
+                }
+        }
     }
 
-    fun confirmReassign(targetTeam: String, note: String?) {
+    fun confirmReassign(targetUser: String, note: String?) {
         _state.value = _state.value.copy(showReassignSheet = false)
         screenModelScope.launch {
             _state.value = _state.value.copy(actionInProgress = true)
-            ticketRepository.reassign(ticketId, targetTeam, note)
+            ticketRepository.reassign(ticketId, targetUser, note)
                 .onSuccess { ticket ->
                     _state.value = _state.value.copy(ticket = ticket, actionInProgress = false)
                 }

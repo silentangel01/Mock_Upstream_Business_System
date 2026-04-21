@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="zh">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>新工单通知</title>
+</head>
+<body style="margin:0;padding:0;background-color:#f4f5f7;font-family:'Helvetica Neue',Arial,'PingFang SC','Microsoft YaHei',sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f4f5f7;padding:32px 0;">
+    <tr>
+        <td align="center">
+            <table width="600" cellpadding="0" cellspacing="0" style="background-color:#ffffff;border-radius:8px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.06);">
+                <!-- Header -->
+                <tr>
+                    <td style="background-color:#1a73e8;padding:24px 32px;">
+                        <h1 style="margin:0;color:#ffffff;font-size:20px;font-weight:600;">MUBS 城管系统</h1>
+                    </td>
+                </tr>
+                <!-- Body -->
+                <tr>
+                    <td style="padding:32px;">
+                        <h2 style="margin:0 0 16px;color:#202124;font-size:18px;font-weight:600;">新工单已派发</h2>
+                        <p style="margin:0 0 24px;color:#5f6368;font-size:14px;line-height:1.6;">
+                            您所在的团队收到了一个新的工单，请及时查看并处理。
+                        </p>
+                        <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f8f9fa;border-radius:6px;padding:16px;margin-bottom:24px;">
+                            <tr>
+                                <td style="padding:8px 16px;">
+                                    <table width="100%" cellpadding="0" cellspacing="0">
+                                        <tr>
+                                            <td style="color:#5f6368;font-size:13px;padding:6px 0;width:80px;">工单编号</td>
+                                            <td style="color:#202124;font-size:13px;padding:6px 0;font-weight:500;" th:text="${ticketId}">T-001</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="color:#5f6368;font-size:13px;padding:6px 0;">事件类型</td>
+                                            <td style="color:#202124;font-size:13px;padding:6px 0;font-weight:500;" th:text="${eventType}">违规占道</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="color:#5f6368;font-size:13px;padding:6px 0;">描述</td>
+                                            <td style="color:#202124;font-size:13px;padding:6px 0;" th:text="${description}">—</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="color:#5f6368;font-size:13px;padding:6px 0;">派发团队</td>
+                                            <td style="color:#202124;font-size:13px;padding:6px 0;font-weight:500;" th:text="${team}">—</td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                        </table>
+                        <table cellpadding="0" cellspacing="0">
+                            <tr>
+                                <td style="background-color:#1a73e8;border-radius:4px;">
+                                    <a th:href="${actionUrl}" style="display:inline-block;padding:10px 24px;color:#ffffff;font-size:14px;font-weight:500;text-decoration:none;">
+                                        查看工单详情
+                                    </a>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+                <!-- Footer -->
+                <tr>
+                    <td style="padding:16px 32px;border-top:1px solid #e8eaed;">
+                        <p style="margin:0;color:#9aa0a6;font-size:12px;line-height:1.5;">
+                            此邮件由 MUBS 城管系统自动发送，请勿直接回复。
+                        </p>
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+</body>
+</html>

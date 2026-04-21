@@ -1,11 +1,13 @@
 package com.mubs.service
 
+import com.mubs.dto.FieldworkerDto
 import com.mubs.dto.HvasWebhookPayload
 import com.mubs.dto.TicketFilterParams
 import com.mubs.dto.TicketStatsResponse
 import com.mubs.model.Ticket
 import com.mubs.model.TimelineEntry
 import com.mubs.model.enums.TicketStatus
+import com.mubs.model.enums.UserRole
 import com.mubs.repository.TicketRepository
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.Page
@@ -16,6 +18,7 @@ import org.springframework.data.mongodb.core.aggregation.Aggregation
 import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.Query
 import org.springframework.data.support.PageableExecutionUtils
+import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Service
 import java.time.Instant
 
@@ -23,7 +26,8 @@ import java.time.Instant
 class TicketService(
     private val ticketRepository: TicketRepository,
     private val mongoTemplate: MongoTemplate,
-    private val hvasApiClient: HvasApiClient
+    private val hvasApiClient: HvasApiClient,
+    private val userRepository: com.mubs.repository.UserRepository
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -56,13 +60,19 @@ class TicketService(
 
     fun save(ticket: Ticket): Ticket = ticketRepository.save(ticket)
 
-    fun findAll(params: TicketFilterParams): Page<Ticket> {
+    fun findAll(params: TicketFilterParams, authentication: Authentication): Page<Ticket> {
         val pageable = PageRequest.of(params.page, params.size, Sort.by(Sort.Direction.DESC, "createdAt"))
         val query = Query().with(pageable)
 
         params.status?.let { query.addCriteria(Criteria.where("status").`is`(it)) }
         params.eventType?.let { query.addCriteria(Criteria.where("eventType").`is`(it)) }
         params.assignedTeam?.let { query.addCriteria(Criteria.where("assignedTeam").`is`(it)) }
+
+        // FIELDWORKER can only see tickets assigned to them personally
+        val isFieldworker = authentication.authorities.any { it.authority == "ROLE_FIELDWORKER" }
+        if (isFieldworker) {
+            query.addCriteria(Criteria.where("assignedUser").`is`(authentication.name))
+        }
 
         val results = mongoTemplate.find(query, Ticket::class.java)
         return PageableExecutionUtils.getPage(results, pageable) {
@@ -116,7 +126,7 @@ class TicketService(
         return saved
     }
 
-    fun reassign(id: String, targetTeam: String, actor: String, note: String?): Ticket {
+    fun reassign(id: String, targetUser: String, actor: String, note: String?): Ticket {
         val ticket = ticketRepository.findById(id)
             .orElseThrow { IllegalArgumentException("Ticket not found: $id") }
 
@@ -125,19 +135,33 @@ class TicketService(
             throw IllegalStateException("Cannot reassign ticket in status ${ticket.status}")
         }
 
+        val target = userRepository.findByUsername(targetUser)
+            ?: throw IllegalArgumentException("User not found: $targetUser")
+
+        val previousUser = ticket.assignedUser
         val previousTeam = ticket.assignedTeam
-        ticket.assignedTeam = targetTeam
+        ticket.assignedUser = target.username
+        ticket.assignedTeam = target.team
         ticket.status = TicketStatus.DISPATCHED
         ticket.dispatchedAt = Instant.now()
         ticket.timeline.add(
             TimelineEntry(
                 action = "REASSIGNED",
                 actor = actor,
-                note = "Reassigned from $previousTeam to $targetTeam. ${note ?: ""}"
+                note = "Reassigned from ${previousUser ?: previousTeam} to ${target.username}. ${note ?: ""}"
             )
         )
-        log.info("Ticket {} reassigned from {} to {} by {}", id, previousTeam, targetTeam, actor)
+        log.info("Ticket {} reassigned to user {} (team {}) by {}", id, target.username, target.team, actor)
         return ticketRepository.save(ticket)
+    }
+
+    fun listFieldworkers(team: String?): List<FieldworkerDto> {
+        val workers = if (team != null) {
+            userRepository.findByTeamAndRoleAndEnabledTrue(team, UserRole.FIELDWORKER)
+        } else {
+            userRepository.findByRoleAndEnabledTrue(UserRole.FIELDWORKER)
+        }
+        return workers.map { FieldworkerDto(it.username, it.displayName, it.team) }
     }
 
     fun getStats(): TicketStatsResponse {

@@ -1,6 +1,7 @@
 package com.mubs.mobile.data.repository
 
 import com.mubs.mobile.data.api.TicketApi
+import com.mubs.mobile.data.model.Fieldworker
 import com.mubs.mobile.data.model.PageResponse
 import com.mubs.mobile.data.model.Ticket
 import com.mubs.mobile.data.model.TicketStatus
@@ -23,9 +24,12 @@ class TicketRepository(private val ticketApi: TicketApi) {
 
     suspend fun reassign(
         id: String,
-        targetTeam: String,
+        targetUser: String,
         note: String? = null
-    ): Result<Ticket> = ticketApi.reassign(id, targetTeam, note)
+    ): Result<Ticket> = ticketApi.reassign(id, targetUser, note)
+
+    suspend fun listFieldworkers(team: String? = null): Result<List<Fieldworker>> =
+        ticketApi.listFieldworkers(team)
 
     suspend fun uploadPhoto(
         id: String,

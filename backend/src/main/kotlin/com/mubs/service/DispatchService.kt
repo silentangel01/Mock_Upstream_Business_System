@@ -1,10 +1,14 @@
 package com.mubs.service
 
+import com.mubs.model.RoundRobinCounter
 import com.mubs.model.Ticket
 import com.mubs.model.TimelineEntry
 import com.mubs.model.enums.TicketStatus
+import com.mubs.model.enums.UserRole
 import com.mubs.repository.DispatchRuleRepository
+import com.mubs.repository.RoundRobinCounterRepository
 import com.mubs.repository.TicketRepository
+import com.mubs.repository.UserRepository
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.scheduling.annotation.Scheduled
@@ -16,6 +20,8 @@ class DispatchService(
     private val dispatchRuleRepository: DispatchRuleRepository,
     private val ticketRepository: TicketRepository,
     private val notificationService: NotificationService,
+    private val userRepository: UserRepository,
+    private val roundRobinCounterRepository: RoundRobinCounterRepository,
     @Value("\${mubs.dispatch.timeout-minutes}") private val timeoutMinutes: Long
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
@@ -32,20 +38,49 @@ class DispatchService(
             ticket.assignedTeam = matchedRule.targetTeam
             ticket.status = TicketStatus.DISPATCHED
             ticket.dispatchedAt = Instant.now()
-            ticket.timeline.add(
-                TimelineEntry(
-                    action = "AUTO_DISPATCHED",
-                    actor = "system",
-                    note = "Matched rule: ${matchedRule.eventType}/${matchedRule.areaCode} → ${matchedRule.targetTeam}"
+
+            // Round-robin: pick a specific fieldworker within the team
+            val worker = pickNextWorker(matchedRule.targetTeam)
+            if (worker != null) {
+                ticket.assignedUser = worker
+                ticket.timeline.add(
+                    TimelineEntry(
+                        action = "AUTO_DISPATCHED",
+                        actor = "system",
+                        note = "Matched rule: ${matchedRule.eventType}/${matchedRule.areaCode} → ${matchedRule.targetTeam}, assigned to $worker"
+                    )
                 )
-            )
-            log.info("Auto-dispatched ticket {} to team {}", ticket.id, matchedRule.targetTeam)
+                log.info("Auto-dispatched ticket {} to team {}, user {}", ticket.id, matchedRule.targetTeam, worker)
+            } else {
+                ticket.timeline.add(
+                    TimelineEntry(
+                        action = "AUTO_DISPATCHED",
+                        actor = "system",
+                        note = "Matched rule: ${matchedRule.eventType}/${matchedRule.areaCode} → ${matchedRule.targetTeam} (no available worker)"
+                    )
+                )
+                log.warn("Auto-dispatched ticket {} to team {} but no available fieldworker", ticket.id, matchedRule.targetTeam)
+            }
         } else {
             log.warn("No dispatch rule matched for ticket {} (eventType={}, areaCode={})",
                 ticket.id, ticket.eventType, ticket.areaCode)
         }
 
         return ticketRepository.save(ticket)
+    }
+
+    private fun pickNextWorker(team: String): String? {
+        val workers = userRepository.findByTeamAndRoleAndEnabledTrue(team, UserRole.FIELDWORKER)
+        if (workers.isEmpty()) return null
+
+        val counter = roundRobinCounterRepository.findById(team)
+            .orElse(RoundRobinCounter(team = team, lastIndex = 0))
+
+        val nextIndex = (counter.lastIndex + 1) % workers.size
+        counter.lastIndex = nextIndex
+        roundRobinCounterRepository.save(counter)
+
+        return workers[nextIndex].username
     }
 
     @Scheduled(fixedDelayString = "\${mubs.dispatch.timeout-minutes:30}000")

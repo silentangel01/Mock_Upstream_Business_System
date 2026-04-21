@@ -15,6 +15,7 @@
             <el-descriptions-item label="事件类型">{{ EVENT_TYPE_LABEL[ticket.eventType] || ticket.eventType }}</el-descriptions-item>
             <el-descriptions-item label="置信度">{{ (ticket.confidence * 100).toFixed(0) }}%</el-descriptions-item>
             <el-descriptions-item label="负责团队">{{ TEAM_LABEL[ticket.assignedTeam!] || ticket.assignedTeam || '-' }}</el-descriptions-item>
+            <el-descriptions-item label="负责人">{{ ticket.assignedUser || '-' }}</el-descriptions-item>
             <el-descriptions-item label="摄像头">{{ ticket.cameraId }}</el-descriptions-item>
             <el-descriptions-item label="位置">{{ ticket.location || '-' }}</el-descriptions-item>
             <el-descriptions-item label="区域编码">{{ ticket.areaCode || '-' }}</el-descriptions-item>
@@ -78,11 +79,12 @@
     </el-dialog>
 
     <!-- Reassign Dialog -->
-    <el-dialog v-model="reassignVisible" title="重新派遣" width="400px">
+    <el-dialog v-model="reassignVisible" title="重新派遣" width="400px" @open="loadFieldworkers">
       <el-form>
-        <el-form-item label="目标团队">
-          <el-select v-model="reassignTeam" style="width:100%">
-            <el-option v-for="(label, key) in TEAM_LABEL" :key="key" :label="label" :value="key" />
+        <el-form-item label="目标人员">
+          <el-select v-model="reassignUser" style="width:100%" filterable placeholder="选择人员">
+            <el-option v-for="fw in fieldworkers" :key="fw.username"
+              :label="`${fw.displayName || fw.username} (${fw.team || '-'})`" :value="fw.username" />
           </el-select>
         </el-form-item>
         <el-form-item label="备注">
@@ -100,11 +102,11 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { getTicket, updateTicketStatus, reassignTicket } from '@shared/api/tickets'
+import { getTicket, updateTicketStatus, reassignTicket, listFieldworkers } from '@shared/api/tickets'
 import { useAuthStore } from '@shared/stores/auth'
 import { STATUS_LABEL, STATUS_TYPE, EVENT_TYPE_LABEL, TEAM_LABEL, ALLOWED_TRANSITIONS } from '@shared/utils/constants'
 import { formatDate } from '@shared/utils/format'
-import type { Ticket } from '@shared/types'
+import type { Ticket, Fieldworker } from '@shared/types'
 import { TicketStatus } from '@shared/types'
 import { ElMessage } from 'element-plus'
 
@@ -146,14 +148,24 @@ async function doUpdateStatus() {
 
 // Reassign dialog
 const reassignVisible = ref(false)
-const reassignTeam = ref('')
+const reassignUser = ref('')
 const reassignNote = ref('')
+const fieldworkers = ref<Fieldworker[]>([])
+
+async function loadFieldworkers() {
+  try {
+    const { data } = await listFieldworkers()
+    fieldworkers.value = data
+  } catch (e: any) {
+    ElMessage.error('加载人员列表失败')
+  }
+}
 
 async function doReassign() {
-  if (!reassignTeam.value) return
+  if (!reassignUser.value) return
   updating.value = true
   try {
-    const { data } = await reassignTicket(ticket.value!.id, reassignTeam.value, reassignNote.value || undefined)
+    const { data } = await reassignTicket(ticket.value!.id, reassignUser.value, reassignNote.value || undefined)
     ticket.value = data
     reassignVisible.value = false
     ElMessage.success('已重新派遣')

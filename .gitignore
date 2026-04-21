@@ -1,3 +1,7 @@
 .idea/
 *.iml
 uploads/
+
+# Local config with secrets (NEVER commit)
+.env
+backend/src/main/resources/application-local.yml

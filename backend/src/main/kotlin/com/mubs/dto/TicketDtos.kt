@@ -23,3 +23,9 @@ data class TicketStatsResponse(
     val byTeam: Map<String, Long>,
     val avgResolutionMinutes: Double?
 )
+
+data class FieldworkerDto(
+    val username: String,
+    val displayName: String?,
+    val team: String?
+)

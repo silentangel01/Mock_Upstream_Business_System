@@ -66,7 +66,8 @@ fun TicketCard(ticket: Ticket, onClick: () -> Unit) {
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-                ticket.assignedTeam?.let {
+                val assignee = ticket.assignedUser ?: ticket.assignedTeam
+                assignee?.let {
                     Text(
                         text = it,
                         style = MaterialTheme.typography.bodySmall,

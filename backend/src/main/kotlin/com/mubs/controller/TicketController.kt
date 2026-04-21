@@ -1,5 +1,6 @@
 package com.mubs.controller
 
+import com.mubs.dto.FieldworkerDto
 import com.mubs.dto.ReassignRequest
 import com.mubs.dto.TicketFilterParams
 import com.mubs.dto.TicketStatusUpdateRequest
@@ -28,7 +29,8 @@ class TicketController(
         @RequestParam(required = false) eventType: String?,
         @RequestParam(required = false) assignedTeam: String?,
         @RequestParam(defaultValue = "0") page: Int,
-        @RequestParam(defaultValue = "20") size: Int
+        @RequestParam(defaultValue = "20") size: Int,
+        authentication: Authentication
     ): ResponseEntity<Page<Ticket>> {
         val params = TicketFilterParams(
             status = status,
@@ -37,7 +39,7 @@ class TicketController(
             page = page,
             size = size
         )
-        return ResponseEntity.ok(ticketService.findAll(params))
+        return ResponseEntity.ok(ticketService.findAll(params, authentication))
     }
 
     @GetMapping("/{id}")
@@ -65,9 +67,17 @@ class TicketController(
         @Valid @RequestBody request: ReassignRequest,
         authentication: Authentication
     ): ResponseEntity<Ticket> {
-        val updated = ticketService.reassign(id, request.targetTeam, authentication.name, request.note)
+        val updated = ticketService.reassign(id, request.targetUser, authentication.name, request.note)
         notificationService.notifyStatusChange(updated)
         return ResponseEntity.ok(updated)
+    }
+
+    @GetMapping("/fieldworkers")
+    @PreAuthorize("hasAnyRole('ADMIN', 'DISPATCHER')")
+    fun listFieldworkers(
+        @RequestParam(required = false) team: String?
+    ): ResponseEntity<List<FieldworkerDto>> {
+        return ResponseEntity.ok(ticketService.listFieldworkers(team))
     }
 
     @GetMapping("/stats")
