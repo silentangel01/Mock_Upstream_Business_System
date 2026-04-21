@@ -8,8 +8,10 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -20,17 +22,18 @@ import androidx.compose.ui.unit.dp
 import com.mubs.mobile.data.model.Ticket
 
 private val eventTypeLabels = mapOf(
-    "smoke_flame" to "烟火检测",
-    "parking_violation" to "违停检测",
-    "common_space_utilization" to "公共空间占用"
+    "smoke_flame" to "Smoke & Fire",
+    "parking_violation" to "Parking Violation",
+    "common_space_utilization" to "Public Space Occupation"
 )
 
 @Composable
 fun TicketCard(ticket: Ticket, onClick: () -> Unit) {
     Card(
         modifier = Modifier.fillMaxWidth().clickable(onClick = onClick),
+        shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(Modifier.padding(16.dp)) {
             Row(
@@ -57,12 +60,17 @@ fun TicketCard(ticket: Ticket, onClick: () -> Unit) {
                 )
             }
 
+            HorizontalDivider(
+                modifier = Modifier.padding(vertical = 8.dp),
+                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+            )
+
             Row(
-                Modifier.fillMaxWidth().padding(top = 4.dp),
+                Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    text = "摄像头: ${ticket.cameraId}",
+                    text = "Camera: ${ticket.cameraId}",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )

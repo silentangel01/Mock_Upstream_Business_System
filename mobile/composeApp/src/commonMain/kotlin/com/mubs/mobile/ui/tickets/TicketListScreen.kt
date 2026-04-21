@@ -26,6 +26,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -51,6 +52,11 @@ class TicketListScreen : Screen {
         val model = remember { TicketListScreenModel(AppModule.instance.ticketRepository) }
         val state by model.state.collectAsState()
         val listState = rememberLazyListState()
+        val username = remember { mutableStateOf<String?>(null) }
+
+        LaunchedEffect(Unit) {
+            username.value = AppModule.instance.authRepository.getUsername()
+        }
 
         val shouldLoadMore by remember {
             derivedStateOf {
@@ -68,7 +74,18 @@ class TicketListScreen : Screen {
         Scaffold(
             topBar = {
                 TopAppBar(
-                    title = { Text("工单列表") },
+                    title = {
+                        Column {
+                            Text("Tickets")
+                            username.value?.let {
+                                Text(
+                                    text = it,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f)
+                                )
+                            }
+                        }
+                    },
                     colors = TopAppBarDefaults.topAppBarColors(
                         containerColor = MaterialTheme.colorScheme.primary,
                         titleContentColor = MaterialTheme.colorScheme.onPrimary
@@ -80,7 +97,7 @@ class TicketListScreen : Screen {
                                 navigator.replaceAll(LoginScreen())
                             }
                         }) {
-                            Text("退出", color = MaterialTheme.colorScheme.onPrimary)
+                            Text("Logout", color = MaterialTheme.colorScheme.onPrimary)
                         }
                     }
                 )
@@ -100,7 +117,7 @@ class TicketListScreen : Screen {
                     if (state.tickets.isEmpty() && !state.isLoading) {
                         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                             Text(
-                                text = state.error ?: "暂无工单",
+                                text = state.error ?: "No tickets",
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
@@ -132,11 +149,11 @@ class TicketListScreen : Screen {
 }
 
 private val statusFilters = listOf(
-    null to "全部",
-    TicketStatus.PENDING to "待处理",
-    TicketStatus.DISPATCHED to "已派发",
-    TicketStatus.IN_PROGRESS to "处理中",
-    TicketStatus.RESOLVED to "已解决"
+    null to "All",
+    TicketStatus.PENDING to "Pending",
+    TicketStatus.DISPATCHED to "Dispatched",
+    TicketStatus.IN_PROGRESS to "In Progress",
+    TicketStatus.RESOLVED to "Resolved"
 )
 
 @Composable

@@ -96,7 +96,7 @@ data class TicketDetailScreen(val ticketId: String) : Screen {
         Scaffold(
             topBar = {
                 TopAppBar(
-                    title = { Text("工单详情") },
+                    title = { Text("Ticket Details") },
                     navigationIcon = {
                         IconButton(onClick = { navigator.pop() }) {
                             Text("<", color = MaterialTheme.colorScheme.onPrimary)
@@ -145,9 +145,9 @@ private fun TicketContent(
     modifier: Modifier = Modifier
 ) {
     val eventTypeLabels = mapOf(
-        "smoke_flame" to "烟火检测",
-        "parking_violation" to "违停检测",
-        "common_space_utilization" to "公共空间占用"
+        "smoke_flame" to "Smoke & Fire",
+        "parking_violation" to "Parking Violation",
+        "common_space_utilization" to "Public Space Occupation"
     )
 
     Column(
@@ -166,12 +166,12 @@ private fun TicketContent(
         // Info card
         Card(Modifier.fillMaxWidth()) {
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                InfoRow("摄像头", ticket.cameraId)
-                ticket.location?.let { InfoRow("位置", it) }
-                ticket.assignedTeam?.let { InfoRow("负责团队", it) }
-                ticket.assignedUser?.let { InfoRow("负责人", it) }
-                InfoRow("置信度", "${(ticket.confidence * 100).toInt()}%")
-                ticket.description?.let { InfoRow("描述", it) }
+                InfoRow("Camera", ticket.cameraId)
+                ticket.location?.let { InfoRow("Location", it) }
+                ticket.assignedTeam?.let { InfoRow("Team", it) }
+                ticket.assignedUser?.let { InfoRow("Assignee", it) }
+                InfoRow("Confidence", "${(ticket.confidence * 100).toInt()}%")
+                ticket.description?.let { InfoRow("Description", it) }
             }
         }
 
@@ -179,10 +179,10 @@ private fun TicketContent(
         if (!ticket.imageUrl.isNullOrBlank()) {
             val baseUrl = remember { platformBaseUrl() }
             val evidenceUrl = if (ticket.imageUrl.startsWith("http")) ticket.imageUrl else "${baseUrl}${ticket.imageUrl}"
-            Text("事件证据", style = MaterialTheme.typography.titleMedium)
+            Text("Evidence", style = MaterialTheme.typography.titleMedium)
             AsyncImage(
                 model = evidenceUrl,
-                contentDescription = "事件证据图片",
+                contentDescription = "Evidence image",
                 contentScale = ContentScale.Fit,
                 modifier = Modifier
                     .fillMaxWidth()
@@ -211,13 +211,16 @@ private fun TicketContent(
             var selectedPhotoUrl by remember { mutableStateOf<String?>(null) }
             val baseUrl = remember { platformBaseUrl() }
 
-            Text("处理照片 (${ticket.handlePhotos.size})", style = MaterialTheme.typography.titleMedium)
-            LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text("Photos (${ticket.handlePhotos.size})", style = MaterialTheme.typography.titleMedium)
+            LazyRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
                 items(ticket.handlePhotos) { path ->
                     val fullUrl = if (path.startsWith("http")) path else "${baseUrl}${path}"
                     AsyncImage(
                         model = fullUrl,
-                        contentDescription = "处理照片",
+                        contentDescription = "Photo",
                         contentScale = ContentScale.Crop,
                         modifier = Modifier
                             .size(100.dp)
@@ -239,11 +242,12 @@ private fun TicketContent(
                     ) {
                         AsyncImage(
                             model = selectedPhotoUrl,
-                            contentDescription = "照片大图",
+                            contentDescription = "Full photo",
                             contentScale = ContentScale.Fit,
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(16.dp)
+                                .clip(RoundedCornerShape(8.dp))
                         )
                     }
                 }
@@ -252,7 +256,7 @@ private fun TicketContent(
 
         // Timeline
         if (ticket.timeline.isNotEmpty()) {
-            Text("处理时间线", style = MaterialTheme.typography.titleMedium)
+            Text("Timeline", style = MaterialTheme.typography.titleMedium)
             ticket.timeline.forEachIndexed { index, entry ->
                 TimelineItem(entry)
                 if (index < ticket.timeline.lastIndex) {
@@ -290,17 +294,17 @@ private fun ActionButtons(
         when (ticket.status) {
             TicketStatus.DISPATCHED -> if (isFieldworker) {
                 Button(onClick = { onStatusUpdate("ACCEPTED") }, Modifier.fillMaxWidth()) {
-                    Text("接单")
+                    Text("Accept")
                 }
             }
             TicketStatus.ACCEPTED -> if (isFieldworker) {
                 Button(onClick = { onStatusUpdate("IN_PROGRESS") }, Modifier.fillMaxWidth()) {
-                    Text("开始处理")
+                    Text("Start")
                 }
             }
             TicketStatus.IN_PROGRESS -> if (isFieldworker) {
                 Button(onClick = { onStatusUpdate("RESOLVED") }, Modifier.fillMaxWidth()) {
-                    Text("完成处理")
+                    Text("Resolve")
                 }
             }
             else -> {}
@@ -314,7 +318,7 @@ private fun ActionButtons(
                     contentColor = MaterialTheme.colorScheme.secondary
                 )
             ) {
-                Text("改派工单")
+                Text("Reassign")
             }
         }
     }
@@ -332,7 +336,7 @@ private fun TimelineItem(entry: TimelineEntry) {
             )
         }
         Text(
-            "操作人: ${entry.actor}",
+                        "By: ${entry.actor}",
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
@@ -347,22 +351,22 @@ private fun NoteDialog(onConfirm: (String?) -> Unit, onDismiss: () -> Unit) {
     var note by remember { mutableStateOf("") }
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("添加备注") },
+        title = { Text("Add Note") },
         text = {
             OutlinedTextField(
                 value = note,
                 onValueChange = { note = it },
-                label = { Text("备注（可选）") },
+                label = { Text("Note (optional)") },
                 modifier = Modifier.fillMaxWidth()
             )
         },
         confirmButton = {
             TextButton(onClick = { onConfirm(note.ifBlank { null }) }) {
-                Text("确认")
+                Text("Confirm")
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) { Text("取消") }
+            TextButton(onClick = onDismiss) { Text("Cancel") }
         }
     )
 }
@@ -381,10 +385,10 @@ private fun ReassignSheet(
 
     ModalBottomSheet(onDismissRequest = onDismiss) {
         Column(Modifier.padding(24.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text("改派工单", style = MaterialTheme.typography.titleMedium)
+            Text("Reassign Ticket", style = MaterialTheme.typography.titleMedium)
 
             if (available.isEmpty()) {
-                Text("加载人员列表中...", style = MaterialTheme.typography.bodySmall)
+                Text("Loading personnel...", style = MaterialTheme.typography.bodySmall)
             } else {
                 available.forEach { fw ->
                     val label = "${fw.displayName ?: fw.username} (${fw.team ?: "-"})"
@@ -405,7 +409,7 @@ private fun ReassignSheet(
             OutlinedTextField(
                 value = note,
                 onValueChange = { note = it },
-                label = { Text("备注（可选）") },
+                label = { Text("Note (optional)") },
                 modifier = Modifier.fillMaxWidth()
             )
 
@@ -414,7 +418,7 @@ private fun ReassignSheet(
                 enabled = selectedUser.isNotEmpty(),
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("确认改派")
+                Text("Confirm Reassign")
             }
 
             Spacer(Modifier.height(16.dp))

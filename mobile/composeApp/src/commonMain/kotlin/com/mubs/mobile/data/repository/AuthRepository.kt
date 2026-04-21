@@ -23,4 +23,6 @@ class AuthRepository(
     suspend fun isLoggedIn(): Boolean = sessionManager.getToken() != null
 
     suspend fun getRole(): String? = sessionManager.getRole()
+
+    suspend fun getUsername(): String? = sessionManager.getUsername()
 }
