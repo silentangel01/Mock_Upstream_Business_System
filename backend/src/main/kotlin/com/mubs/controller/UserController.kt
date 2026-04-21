@@ -8,13 +8,11 @@ import com.mubs.model.User
 import com.mubs.repository.UserRepository
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
-import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.web.bind.annotation.*
 
 @RestController
 @RequestMapping("/api/users")
-@PreAuthorize("hasRole('ADMIN')")
 class UserController(
     private val userRepository: UserRepository,
     private val passwordEncoder: PasswordEncoder

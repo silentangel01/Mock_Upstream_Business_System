@@ -58,6 +58,7 @@ class SecurityConfig(
                     .requestMatchers("/ws/**").permitAll()
                     .requestMatchers("/uploads/**").permitAll()
                     .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                    .requestMatchers("/api/users/**").hasRole("ADMIN")
                     .anyRequest().authenticated()
             }
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter::class.java)
