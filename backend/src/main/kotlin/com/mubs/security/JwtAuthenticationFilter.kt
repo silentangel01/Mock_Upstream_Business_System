@@ -3,6 +3,7 @@ package com.mubs.security
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
+import org.slf4j.LoggerFactory
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource
@@ -15,6 +16,8 @@ class JwtAuthenticationFilter(
     private val userDetailsService: UserDetailsServiceImpl
 ) : OncePerRequestFilter() {
 
+    private val log = LoggerFactory.getLogger(javaClass)
+
     override fun doFilterInternal(
         request: HttpServletRequest,
         response: HttpServletResponse,
@@ -24,6 +27,7 @@ class JwtAuthenticationFilter(
         if (token != null && jwtTokenProvider.validateToken(token)) {
             val username = jwtTokenProvider.getUsernameFromToken(token)
             val userDetails = userDetailsService.loadUserByUsername(username)
+            log.debug("JWT auth: user={}, authorities={}, enabled={}", username, userDetails.authorities, userDetails.isEnabled)
             val auth = UsernamePasswordAuthenticationToken(
                 userDetails, null, userDetails.authorities
             )

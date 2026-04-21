@@ -6,8 +6,11 @@ import com.mubs.dto.UpdateUserRequest
 import com.mubs.dto.UserResponse
 import com.mubs.model.User
 import com.mubs.repository.UserRepository
+import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.security.access.prepost.PreAuthorize
+import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.web.bind.annotation.*
 
@@ -17,14 +20,17 @@ class UserController(
     private val userRepository: UserRepository,
     private val passwordEncoder: PasswordEncoder
 ) {
+    private val log = LoggerFactory.getLogger(javaClass)
 
     @GetMapping
+    @PreAuthorize("hasRole('ADMIN')")
     fun listUsers(): ResponseEntity<List<UserResponse>> {
         val users = userRepository.findAll().map { it.toResponse() }
         return ResponseEntity.ok(users)
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     fun createUser(@RequestBody req: CreateUserRequest): ResponseEntity<Any> {
         if (userRepository.findByUsername(req.username) != null) {
             return ResponseEntity.badRequest().body(mapOf("message" to "用户名已存在"))
@@ -42,7 +48,10 @@ class UserController(
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     fun updateUser(@PathVariable id: String, @RequestBody req: UpdateUserRequest): ResponseEntity<Any> {
+        val auth = SecurityContextHolder.getContext().authentication
+        log.info("updateUser called by ${auth?.name}, authorities=${auth?.authorities}, id=$id")
         val existing = userRepository.findById(id).orElse(null)
             ?: return ResponseEntity.notFound().build()
         val updated = existing.copy(
@@ -57,6 +66,7 @@ class UserController(
     }
 
     @PutMapping("/{id}/password")
+    @PreAuthorize("hasRole('ADMIN')")
     fun resetPassword(@PathVariable id: String, @RequestBody req: ResetPasswordRequest): ResponseEntity<Any> {
         val existing = userRepository.findById(id).orElse(null)
             ?: return ResponseEntity.notFound().build()
@@ -66,6 +76,7 @@ class UserController(
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     fun deleteUser(@PathVariable id: String): ResponseEntity<Void> {
         if (!userRepository.existsById(id)) {
             return ResponseEntity.notFound().build()
