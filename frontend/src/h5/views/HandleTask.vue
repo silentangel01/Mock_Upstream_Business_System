@@ -1,18 +1,18 @@
 <template>
   <div>
-    <van-nav-bar title="处置上报" left-arrow @click-left="router.back()" />
+    <van-nav-bar title="Report" left-arrow @click-left="router.back()" />
 
     <van-cell-group inset style="margin:12px">
-      <van-field label="拍照上传">
+      <van-field label="Photos">
         <template #input>
           <van-uploader v-model="fileList" :after-read="afterRead" :max-count="5" accept="image/*" />
         </template>
       </van-field>
-      <van-field v-model="note" type="textarea" label="处置备注" placeholder="请输入处置说明" rows="3" />
+      <van-field v-model="note" type="textarea" label="Note" placeholder="Enter handling notes" rows="3" />
     </van-cell-group>
 
     <div style="padding:16px">
-      <van-button type="primary" block :loading="submitting" @click="submit">提交处置</van-button>
+      <van-button type="primary" block :loading="submitting" @click="submit">Submit</van-button>
     </div>
   </div>
 </template>
@@ -37,7 +37,7 @@ function afterRead(file: any) {
 
 async function submit() {
   if (!fileList.value.length) {
-    showToast('请至少上传一张照片')
+    showToast('Please upload at least one photo')
     return
   }
   submitting.value = true
@@ -50,10 +50,10 @@ async function submit() {
     }
     // Transition to RESOLVED
     await updateTicketStatus(ticketId, 'RESOLVED', note.value || undefined)
-    showToast('处置已提交')
+    showToast('Submitted')
     router.replace(`/tasks/${ticketId}`)
   } catch (e: any) {
-    showToast(e.response?.data?.message || '提交失败')
+    showToast(e.response?.data?.message || 'Submit failed')
   } finally {
     submitting.value = false
   }

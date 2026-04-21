@@ -26,7 +26,7 @@ class NotificationService(
     private val templateEngine: TemplateEngine,
     @Value("\${mubs.notification.email.enabled:false}") private val emailEnabled: Boolean,
     @Value("\${mubs.notification.email.from:noreply@yourdomain.com}") private val emailFrom: String,
-    @Value("\${mubs.notification.email.from-name:MUBS城管系统}") private val emailFromName: String,
+    @Value("\${mubs.notification.email.from-name:MUBS System}") private val emailFromName: String,
     @Value("\${mubs.h5.base-url:http://localhost:5173}") private val h5BaseUrl: String,
     @Value("\${mubs.dispatch.timeout-minutes:30}") private val timeoutMinutes: Int
 ) {
@@ -44,7 +44,7 @@ class NotificationService(
         if (targetUser != null) {
             // 2. Email to assigned user
             if (emailEnabled && !targetUser.email.isNullOrBlank()) {
-                val subject = "新工单通知：${ticket.eventType}"
+                val subject = "New Ticket: ${ticket.eventType}"
                 val ctx = Context().apply {
                     setVariable("ticketId", ticket.id ?: "")
                     setVariable("eventType", ticket.eventType)
@@ -74,7 +74,7 @@ class NotificationService(
             val teamUsers = userRepository.findByTeam(team)
 
             if (emailEnabled) {
-                val subject = "新工单通知：${ticket.eventType}"
+                val subject = "New Ticket: ${ticket.eventType}"
                 teamUsers.filter { !it.email.isNullOrBlank() }.forEach { user ->
                     val ctx = Context().apply {
                         setVariable("ticketId", ticket.id ?: "")
@@ -120,7 +120,7 @@ class NotificationService(
         // 2. Email admins
         if (emailEnabled) {
             val admins = userRepository.findAll().filter { it.role == UserRole.ADMIN && !it.email.isNullOrBlank() }
-            val subject = "工单超时提醒：${ticket.eventType}"
+            val subject = "Ticket Timeout: ${ticket.eventType}"
             val ctx = Context().apply {
                 setVariable("ticketId", ticket.id ?: "")
                 setVariable("eventType", ticket.eventType)

@@ -49,7 +49,7 @@ class TicketDetailScreenModel(
                 .onFailure { e ->
                     _state.value = _state.value.copy(
                         isLoading = false,
-                        error = e.message ?: "加载失败"
+                        error = e.message ?: "Load failed"
                     )
                 }
         }
@@ -74,7 +74,7 @@ class TicketDetailScreenModel(
                 .onFailure { e ->
                     _state.value = _state.value.copy(
                         actionInProgress = false,
-                        error = e.message ?: "操作失败"
+                        error = e.message ?: "Operation failed"
                     )
                 }
         }
@@ -109,7 +109,7 @@ class TicketDetailScreenModel(
                 .onFailure { e ->
                     _state.value = _state.value.copy(
                         actionInProgress = false,
-                        error = e.message ?: "改派失败"
+                        error = e.message ?: "Reassign failed"
                     )
                 }
         }
@@ -123,7 +123,7 @@ class TicketDetailScreenModel(
                 .onFailure { e ->
                     _state.value = _state.value.copy(
                         actionInProgress = false,
-                        error = e.message ?: "上传失败"
+                        error = e.message ?: "Upload failed"
                     )
                 }
         }

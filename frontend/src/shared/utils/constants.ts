@@ -11,13 +11,13 @@ export const ALLOWED_TRANSITIONS: Record<TicketStatus, TicketStatus[]> = {
 }
 
 export const STATUS_LABEL: Record<string, string> = {
-  PENDING: '待处理',
-  DISPATCHED: '已派遣',
-  ACCEPTED: '已接单',
-  IN_PROGRESS: '处理中',
-  RESOLVED: '已解决',
-  CLOSED: '已关闭',
-  RETURNED: '已退回',
+  PENDING: 'Pending',
+  DISPATCHED: 'Dispatched',
+  ACCEPTED: 'Accepted',
+  IN_PROGRESS: 'In Progress',
+  RESOLVED: 'Resolved',
+  CLOSED: 'Closed',
+  RETURNED: 'Returned',
 }
 
 export const STATUS_TYPE: Record<string, string> = {
@@ -31,13 +31,13 @@ export const STATUS_TYPE: Record<string, string> = {
 }
 
 export const EVENT_TYPE_LABEL: Record<string, string> = {
-  smoke_flame: '烟火检测',
-  parking_violation: '违停检测',
-  common_space_utilization: '公共空间占用',
+  smoke_flame: 'Smoke & Fire',
+  parking_violation: 'Parking Violation',
+  common_space_utilization: 'Public Space Occupation',
 }
 
 export const TEAM_LABEL: Record<string, string> = {
-  fire_team: '消防队',
-  traffic_team: '交通队',
-  urban_mgmt_team: '城管队',
+  fire_team: 'Fire Team',
+  traffic_team: 'Traffic Team',
+  urban_mgmt_team: 'Urban Mgmt Team',
 }

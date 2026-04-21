@@ -34,7 +34,7 @@ class LoginScreenModel(
     fun login() {
         val current = _state.value
         if (current.username.isBlank() || current.password.isBlank()) {
-            _state.value = current.copy(error = "请输入用户名和密码")
+            _state.value = current.copy(error = "Please enter username and password")
             return
         }
 
@@ -47,7 +47,7 @@ class LoginScreenModel(
                 .onFailure { e ->
                     _state.value = _state.value.copy(
                         isLoading = false,
-                        error = e.message ?: "登录失败"
+                        error = e.message ?: "Login failed"
                     )
                 }
         }

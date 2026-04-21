@@ -1,15 +1,15 @@
 <template>
   <div class="h5-login">
     <div style="text-align:center;padding:60px 0 40px">
-      <h2>MUBS 移动工单</h2>
+      <h2>MUBS Mobile</h2>
     </div>
     <van-form @submit="handleLogin">
       <van-cell-group inset>
-        <van-field v-model="form.username" label="用户名" placeholder="请输入用户名" :rules="[{ required: true, message: '请输入用户名' }]" />
-        <van-field v-model="form.password" type="password" label="密码" placeholder="请输入密码" :rules="[{ required: true, message: '请输入密码' }]" />
+        <van-field v-model="form.username" label="Username" placeholder="Enter username" :rules="[{ required: true, message: 'Username is required' }]" />
+        <van-field v-model="form.password" type="password" label="Password" placeholder="Enter password" :rules="[{ required: true, message: 'Password is required' }]" />
       </van-cell-group>
       <div style="margin:24px 16px">
-        <van-button round block type="primary" native-type="submit" :loading="loading">登 录</van-button>
+        <van-button round block type="primary" native-type="submit" :loading="loading">Login</van-button>
       </div>
     </van-form>
     <div v-if="error" style="color:red;text-align:center;padding:0 16px">{{ error }}</div>
@@ -34,7 +34,7 @@ async function handleLogin() {
     await auth.login(form.username, form.password)
     router.push('/tasks')
   } catch (e: any) {
-    error.value = e.response?.data?.message || '登录失败'
+    error.value = e.response?.data?.message || 'Login failed'
   } finally {
     loading.value = false
   }

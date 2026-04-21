@@ -5,19 +5,19 @@
       <el-menu :default-active="route.path" router background-color="#001529" text-color="#ffffffa6" active-text-color="#fff">
         <el-menu-item index="/dashboard">
           <el-icon><DataAnalysis /></el-icon>
-          <span>仪表盘</span>
+          <span>Dashboard</span>
         </el-menu-item>
         <el-menu-item index="/tickets">
           <el-icon><Tickets /></el-icon>
-          <span>工单管理</span>
+          <span>Tickets</span>
         </el-menu-item>
         <el-menu-item v-if="auth.isAdmin" index="/dispatch-rules">
           <el-icon><Setting /></el-icon>
-          <span>派遣规则</span>
+          <span>Dispatch Rules</span>
         </el-menu-item>
         <el-menu-item v-if="auth.isAdmin" index="/users">
           <el-icon><User /></el-icon>
-          <span>用户管理</span>
+          <span>Users</span>
         </el-menu-item>
       </el-menu>
     </el-aside>
@@ -34,7 +34,7 @@
           </span>
           <template #dropdown>
             <el-dropdown-menu>
-              <el-dropdown-item command="logout">退出登录</el-dropdown-item>
+              <el-dropdown-item command="logout">Logout</el-dropdown-item>
             </el-dropdown-menu>
           </template>
         </el-dropdown>

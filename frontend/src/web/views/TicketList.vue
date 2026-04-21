@@ -2,46 +2,46 @@
   <el-card>
     <!-- Filters -->
     <el-form inline style="margin-bottom:16px">
-      <el-form-item label="状态">
-        <el-select v-model="query.status" clearable placeholder="全部" style="width:140px">
+      <el-form-item label="Status">
+        <el-select v-model="query.status" clearable placeholder="All" style="width:140px">
           <el-option v-for="(label, key) in STATUS_LABEL" :key="key" :label="label" :value="key" />
         </el-select>
       </el-form-item>
-      <el-form-item label="事件类型">
-        <el-select v-model="query.eventType" clearable placeholder="全部" style="width:160px">
+      <el-form-item label="Event Type">
+        <el-select v-model="query.eventType" clearable placeholder="All" style="width:160px">
           <el-option v-for="(label, key) in EVENT_TYPE_LABEL" :key="key" :label="label" :value="key" />
         </el-select>
       </el-form-item>
-      <el-form-item label="负责团队">
-        <el-select v-model="query.assignedTeam" clearable placeholder="全部" style="width:140px">
+      <el-form-item label="Team">
+        <el-select v-model="query.assignedTeam" clearable placeholder="All" style="width:140px">
           <el-option v-for="(label, key) in TEAM_LABEL" :key="key" :label="label" :value="key" />
         </el-select>
       </el-form-item>
       <el-form-item>
-        <el-button type="primary" @click="search">查询</el-button>
+        <el-button type="primary" @click="search">Search</el-button>
       </el-form-item>
     </el-form>
 
     <!-- Table -->
     <el-table :data="tickets" stripe style="width:100%" @row-click="(row: Ticket) => router.push(`/tickets/${row.id}`)">
-      <el-table-column prop="eventType" label="事件类型" width="160">
+      <el-table-column prop="eventType" label="Event Type" width="160">
         <template #default="{ row }">{{ EVENT_TYPE_LABEL[row.eventType] || row.eventType }}</template>
       </el-table-column>
-      <el-table-column prop="status" label="状态" width="100">
+      <el-table-column prop="status" label="Status" width="100">
         <template #default="{ row }">
           <el-tag :type="STATUS_TYPE[row.status] as any" size="small">{{ STATUS_LABEL[row.status] }}</el-tag>
         </template>
       </el-table-column>
-      <el-table-column prop="assignedTeam" label="负责团队" width="120">
+      <el-table-column prop="assignedTeam" label="Team" width="120">
         <template #default="{ row }">{{ TEAM_LABEL[row.assignedTeam] || row.assignedTeam || '-' }}</template>
       </el-table-column>
-      <el-table-column prop="confidence" label="置信度" width="90">
+      <el-table-column prop="confidence" label="Confidence" width="90">
         <template #default="{ row }">{{ (row.confidence * 100).toFixed(0) }}%</template>
       </el-table-column>
-      <el-table-column prop="location" label="位置" min-width="120">
+      <el-table-column prop="location" label="Location" min-width="120">
         <template #default="{ row }">{{ row.location || '-' }}</template>
       </el-table-column>
-      <el-table-column prop="createdAt" label="创建时间" width="180">
+      <el-table-column prop="createdAt" label="Created" width="180">
         <template #default="{ row }">{{ formatDate(row.createdAt) }}</template>
       </el-table-column>
     </el-table>

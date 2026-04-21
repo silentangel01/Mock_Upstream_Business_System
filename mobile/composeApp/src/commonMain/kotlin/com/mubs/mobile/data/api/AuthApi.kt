@@ -19,7 +19,7 @@ class AuthApi(private val client: HttpClient) {
                 response.body<LoginResponse>()
             } else {
                 val errorBody = runCatching { response.bodyAsText() }.getOrDefault("")
-                throw Exception("登录失败 (${response.status.value}): $errorBody")
+                throw Exception("Login failed (${response.status.value}): $errorBody")
             }
         }
     }

@@ -29,11 +29,11 @@ fun StatusBadge(status: TicketStatus, modifier: Modifier = Modifier) {
 private data class StatusStyle(val bg: Color, val text: Color, val label: String)
 
 private fun statusStyle(status: TicketStatus): StatusStyle = when (status) {
-    TicketStatus.PENDING -> StatusStyle(Color(0xFFFFF3E0), Color(0xFFE65100), "待处理")
-    TicketStatus.DISPATCHED -> StatusStyle(Color(0xFFE3F2FD), Color(0xFF1565C0), "已派发")
-    TicketStatus.ACCEPTED -> StatusStyle(Color(0xFFE8F5E9), Color(0xFF2E7D32), "已接单")
-    TicketStatus.IN_PROGRESS -> StatusStyle(Color(0xFFFFF8E1), Color(0xFFF9A825), "处理中")
-    TicketStatus.RESOLVED -> StatusStyle(Color(0xFFE8F5E9), Color(0xFF1B5E20), "已解决")
-    TicketStatus.CLOSED -> StatusStyle(Color(0xFFECEFF1), Color(0xFF546E7A), "已关闭")
-    TicketStatus.RETURNED -> StatusStyle(Color(0xFFFFEBEE), Color(0xFFC62828), "已退回")
+    TicketStatus.PENDING -> StatusStyle(Color(0xFFFFF3E0), Color(0xFFE65100), "Pending")
+    TicketStatus.DISPATCHED -> StatusStyle(Color(0xFFE3F2FD), Color(0xFF1565C0), "Dispatched")
+    TicketStatus.ACCEPTED -> StatusStyle(Color(0xFFE8F5E9), Color(0xFF2E7D32), "Accepted")
+    TicketStatus.IN_PROGRESS -> StatusStyle(Color(0xFFFFF8E1), Color(0xFFF9A825), "In Progress")
+    TicketStatus.RESOLVED -> StatusStyle(Color(0xFFE8F5E9), Color(0xFF1B5E20), "Resolved")
+    TicketStatus.CLOSED -> StatusStyle(Color(0xFFECEFF1), Color(0xFF546E7A), "Closed")
+    TicketStatus.RETURNED -> StatusStyle(Color(0xFFFFEBEE), Color(0xFFC62828), "Returned")
 }

@@ -1,30 +1,30 @@
 <template>
   <div v-if="ticket">
-    <van-nav-bar title="工单详情" left-arrow @click-left="router.back()" />
+    <van-nav-bar title="Ticket Details" left-arrow @click-left="router.back()" />
 
     <van-cell-group inset style="margin:12px">
-      <van-cell title="事件类型" :value="EVENT_TYPE_LABEL[ticket.eventType] || ticket.eventType" />
-      <van-cell title="状态">
+      <van-cell title="Event Type" :value="EVENT_TYPE_LABEL[ticket.eventType] || ticket.eventType" />
+      <van-cell title="Status">
         <template #value>
           <van-tag :type="VANT_STATUS_TYPE[ticket.status]">{{ STATUS_LABEL[ticket.status] }}</van-tag>
         </template>
       </van-cell>
-      <van-cell title="负责团队" :value="TEAM_LABEL[ticket.assignedTeam!] || ticket.assignedTeam || '-'" />
-      <van-cell title="位置" :value="ticket.location || '-'" />
-      <van-cell title="置信度" :value="`${(ticket.confidence * 100).toFixed(0)}%`" />
-      <van-cell title="创建时间" :value="formatDate(ticket.createdAt)" />
-      <van-cell v-if="ticket.description" title="描述" :label="ticket.description" />
+      <van-cell title="Team" :value="TEAM_LABEL[ticket.assignedTeam!] || ticket.assignedTeam || '-'" />
+      <van-cell title="Location" :value="ticket.location || '-'" />
+      <van-cell title="Confidence" :value="`${(ticket.confidence * 100).toFixed(0)}%`" />
+      <van-cell title="Created" :value="formatDate(ticket.createdAt)" />
+      <van-cell v-if="ticket.description" title="Description" :label="ticket.description" />
     </van-cell-group>
 
     <!-- Evidence -->
-    <van-cell-group v-if="ticket.imageUrl" inset title="证据图片" style="margin:12px">
+    <van-cell-group v-if="ticket.imageUrl" inset title="Evidence" style="margin:12px">
       <div style="padding:12px">
         <van-image :src="ticket.imageUrl" width="100%" fit="contain" @click="previewEvidence" />
       </div>
     </van-cell-group>
 
     <!-- Handle Photos -->
-    <van-cell-group v-if="ticket.handlePhotos.length" inset title="处置照片" style="margin:12px">
+    <van-cell-group v-if="ticket.handlePhotos.length" inset title="Handling Photos" style="margin:12px">
       <div style="padding:12px;display:flex;gap:8px;flex-wrap:wrap">
         <van-image v-for="(url, i) in ticket.handlePhotos" :key="i" :src="url" width="80" height="80" fit="cover"
           @click="previewPhotos(i)" />
@@ -32,7 +32,7 @@
     </van-cell-group>
 
     <!-- Timeline -->
-    <van-cell-group inset title="时间线" style="margin:12px">
+    <van-cell-group inset title="Timeline" style="margin:12px">
       <van-steps direction="vertical" :active="ticket.timeline.length - 1" active-color="#07c160">
         <van-step v-for="(entry, i) in ticket.timeline" :key="i">
           <p>{{ entry.action }} — {{ entry.actor }}</p>
@@ -49,7 +49,7 @@
         {{ STATUS_LABEL[s] }}
       </van-button>
       <van-button v-if="canHandle" type="success" size="small" :to="`/tasks/${ticket.id}/handle`">
-        处置上报
+        Report
       </van-button>
     </div>
   </div>
@@ -91,10 +91,10 @@ function previewPhotos(index: number) {
 
 async function doTransition(status: string) {
   try {
-    await showDialog({ title: '确认', message: `确认将状态更新为 ${STATUS_LABEL[status]}？` })
+    await showDialog({ title: 'Confirm', message: `Update status to ${STATUS_LABEL[status]}?` })
     const { data } = await updateTicketStatus(ticket.value!.id, status)
     ticket.value = data
-    showToast('已更新')
+    showToast('Updated')
   } catch { /* cancelled */ }
 }
 

@@ -4,22 +4,22 @@
     <el-row :gutter="16" style="margin-bottom:20px">
       <el-col :span="6">
         <el-card shadow="hover">
-          <el-statistic title="总工单" :value="stats.total" />
+          <el-statistic title="Total Tickets" :value="stats.total" />
         </el-card>
       </el-col>
       <el-col :span="6">
         <el-card shadow="hover">
-          <el-statistic title="待处理" :value="stats.byStatus['PENDING'] || 0" />
+          <el-statistic title="Pending" :value="stats.byStatus['PENDING'] || 0" />
         </el-card>
       </el-col>
       <el-col :span="6">
         <el-card shadow="hover">
-          <el-statistic title="处理中" :value="(stats.byStatus['IN_PROGRESS'] || 0) + (stats.byStatus['ACCEPTED'] || 0) + (stats.byStatus['DISPATCHED'] || 0)" />
+          <el-statistic title="In Progress" :value="(stats.byStatus['IN_PROGRESS'] || 0) + (stats.byStatus['ACCEPTED'] || 0) + (stats.byStatus['DISPATCHED'] || 0)" />
         </el-card>
       </el-col>
       <el-col :span="6">
         <el-card shadow="hover">
-          <el-statistic title="平均处理时间" :value="avgTime" suffix="分钟" />
+          <el-statistic title="Avg Resolution Time" :value="avgTime" suffix="min" />
         </el-card>
       </el-col>
     </el-row>
@@ -27,12 +27,12 @@
     <!-- Charts -->
     <el-row :gutter="16" style="margin-bottom:20px">
       <el-col :span="12">
-        <el-card header="状态分布">
+        <el-card header="Status Distribution">
           <v-chart :option="statusChartOption" style="height:300px" autoresize />
         </el-card>
       </el-col>
       <el-col :span="12">
-        <el-card header="事件类型分布">
+        <el-card header="Event Type Distribution">
           <v-chart :option="eventChartOption" style="height:300px" autoresize />
         </el-card>
       </el-col>
@@ -42,25 +42,25 @@
     <el-card>
       <template #header>
         <div style="display:flex;justify-content:space-between;align-items:center">
-          <span>最近工单</span>
+          <span>Recent Tickets</span>
           <el-button v-if="auth.isAdmin" type="primary" size="small" @click="simulate" :loading="simulating">
-            模拟事件
+            Simulate Event
           </el-button>
         </div>
       </template>
       <el-table :data="recentTickets" stripe @row-click="(row: Ticket) => router.push(`/tickets/${row.id}`)">
-        <el-table-column prop="eventType" label="事件类型" width="160">
+        <el-table-column prop="eventType" label="Event Type" width="160">
           <template #default="{ row }">{{ EVENT_TYPE_LABEL[row.eventType] || row.eventType }}</template>
         </el-table-column>
-        <el-table-column prop="status" label="状态" width="100">
+        <el-table-column prop="status" label="Status" width="100">
           <template #default="{ row }">
             <el-tag :type="STATUS_TYPE[row.status] as any" size="small">{{ STATUS_LABEL[row.status] }}</el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="assignedTeam" label="负责团队" width="120">
+        <el-table-column prop="assignedTeam" label="Team" width="120">
           <template #default="{ row }">{{ TEAM_LABEL[row.assignedTeam] || row.assignedTeam || '-' }}</template>
         </el-table-column>
-        <el-table-column prop="createdAt" label="创建时间">
+        <el-table-column prop="createdAt" label="Created">
           <template #default="{ row }">{{ formatDate(row.createdAt) }}</template>
         </el-table-column>
       </el-table>

@@ -2,18 +2,18 @@
   <div class="login-page">
     <el-card class="login-card" shadow="always">
       <template #header>
-        <h2 style="text-align:center;margin:0">MUBS 城市管理工单系统</h2>
+        <h2 style="text-align:center;margin:0">MUBS Ticket System</h2>
       </template>
       <el-form ref="formRef" :model="form" :rules="rules" @submit.prevent="handleLogin" label-width="0">
         <el-form-item prop="username">
-          <el-input v-model="form.username" placeholder="用户名" prefix-icon="User" size="large" />
+          <el-input v-model="form.username" placeholder="Username" prefix-icon="User" size="large" />
         </el-form-item>
         <el-form-item prop="password">
-          <el-input v-model="form.password" placeholder="密码" type="password" prefix-icon="Lock" size="large" show-password />
+          <el-input v-model="form.password" placeholder="Password" type="password" prefix-icon="Lock" size="large" show-password />
         </el-form-item>
         <el-form-item>
           <el-button type="primary" native-type="submit" :loading="loading" size="large" style="width:100%">
-            登 录
+            Login
           </el-button>
         </el-form-item>
       </el-form>
@@ -36,8 +36,8 @@ const error = ref('')
 
 const form = reactive({ username: '', password: '' })
 const rules = {
-  username: [{ required: true, message: '请输入用户名', trigger: 'blur' }],
-  password: [{ required: true, message: '请输入密码', trigger: 'blur' }],
+  username: [{ required: true, message: 'Username is required', trigger: 'blur' }],
+  password: [{ required: true, message: 'Password is required', trigger: 'blur' }],
 }
 
 async function handleLogin() {
@@ -49,7 +49,7 @@ async function handleLogin() {
     await auth.login(form.username, form.password)
     router.push('/dashboard')
   } catch (e: any) {
-    error.value = e.response?.data?.message || '登录失败'
+    error.value = e.response?.data?.message || 'Login failed'
   } finally {
     loading.value = false
   }

@@ -93,7 +93,7 @@ class TicketListScreenModel(
                 _state.value = _state.value.copy(
                     isLoading = false,
                     isRefreshing = false,
-                    error = e.message ?: "加载失败"
+                    error = e.message ?: "Load failed"
                 )
             }
         }

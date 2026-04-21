@@ -1,8 +1,8 @@
 <template>
   <div>
-    <van-nav-bar title="我的任务" />
+    <van-nav-bar title="My Tasks" />
     <van-pull-refresh v-model="refreshing" @refresh="onRefresh">
-      <van-list v-model:loading="loadingMore" :finished="finished" finished-text="没有更多了" @load="loadMore">
+      <van-list v-model:loading="loadingMore" :finished="finished" finished-text="No more" @load="loadMore">
         <van-cell v-for="t in tickets" :key="t.id" :to="`/tasks/${t.id}`" is-link>
           <template #title>
             <span>{{ EVENT_TYPE_LABEL[t.eventType] || t.eventType }}</span>

@@ -12,12 +12,12 @@ class GlobalExceptionHandler {
     @ExceptionHandler(BadCredentialsException::class)
     fun handleBadCredentials(ex: BadCredentialsException): ResponseEntity<Map<String, String>> {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-            .body(mapOf("error" to "用户名或密码错误"))
+            .body(mapOf("error" to "Invalid username or password"))
     }
 
     @ExceptionHandler(IllegalStateException::class)
     fun handleIllegalState(ex: IllegalStateException): ResponseEntity<Map<String, String>> {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-            .body(mapOf("error" to (ex.message ?: "请求异常")))
+            .body(mapOf("error" to (ex.message ?: "Bad request")))
     }
 }

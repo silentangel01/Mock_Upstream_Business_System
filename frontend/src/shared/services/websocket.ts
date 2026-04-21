@@ -12,8 +12,8 @@ export function connectWebSocket(token: string, team?: string) {
         const data = JSON.parse(msg.body)
         const store = useNotificationStore()
         store.add(
-          `工单更新: ${data.eventType || ''}`,
-          data.description || `工单 ${data.id} 状态变更为 ${data.status}`
+          `Ticket Update: ${data.eventType || ''}`,
+          data.description || `Ticket ${data.id} status changed to ${data.status}`
         )
       } catch (e) {
         console.warn('[WS] Failed to parse message:', e)

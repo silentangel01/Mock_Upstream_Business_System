@@ -57,7 +57,7 @@ class LoginScreen : Screen {
                 color = MaterialTheme.colorScheme.primary
             )
             Text(
-                text = "市政城管工单系统",
+                text = "Ticket System",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -67,7 +67,7 @@ class LoginScreen : Screen {
             OutlinedTextField(
                 value = state.username,
                 onValueChange = model::onUsernameChange,
-                label = { Text("用户名") },
+                label = { Text("Username") },
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
                 modifier = Modifier.fillMaxWidth()
@@ -78,7 +78,7 @@ class LoginScreen : Screen {
             OutlinedTextField(
                 value = state.password,
                 onValueChange = model::onPasswordChange,
-                label = { Text("密码") },
+                label = { Text("Password") },
                 singleLine = true,
                 visualTransformation = PasswordVisualTransformation(),
                 keyboardOptions = KeyboardOptions(
@@ -112,7 +112,7 @@ class LoginScreen : Screen {
                         strokeWidth = 2.dp
                     )
                 } else {
-                    Text("登录")
+                    Text("Login")
                 }
             }
         }

@@ -33,7 +33,7 @@ class UserController(
     @PreAuthorize("hasRole('ADMIN')")
     fun createUser(@RequestBody req: CreateUserRequest): ResponseEntity<Any> {
         if (userRepository.findByUsername(req.username) != null) {
-            return ResponseEntity.badRequest().body(mapOf("message" to "用户名已存在"))
+            return ResponseEntity.badRequest().body(mapOf("message" to "Username already exists"))
         }
         val user = User(
             username = req.username,
@@ -72,7 +72,7 @@ class UserController(
             ?: return ResponseEntity.notFound().build()
         val updated = existing.copy(passwordHash = passwordEncoder.encode(req.newPassword))
         userRepository.save(updated)
-        return ResponseEntity.ok(mapOf("message" to "密码已重置"))
+        return ResponseEntity.ok(mapOf("message" to "Password reset"))
     }
 
     @DeleteMapping("/{id}")

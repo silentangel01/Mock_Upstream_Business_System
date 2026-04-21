@@ -17,7 +17,7 @@ class SmsService(
     @Value("\${mubs.notification.sms.enabled:false}") private val smsEnabled: Boolean,
     @Value("\${mubs.notification.sms.access-key-id:}") private val accessKeyId: String,
     @Value("\${mubs.notification.sms.access-key-secret:}") private val accessKeySecret: String,
-    @Value("\${mubs.notification.sms.sign-name:MUBS城管}") private val signName: String,
+    @Value("\${mubs.notification.sms.sign-name:MUBS}") private val signName: String,
     @Value("\${mubs.notification.sms.template-code.dispatch:SMS_000001}") private val dispatchTemplate: String,
     @Value("\${mubs.notification.sms.template-code.timeout:SMS_000002}") private val timeoutTemplate: String
 ) {
