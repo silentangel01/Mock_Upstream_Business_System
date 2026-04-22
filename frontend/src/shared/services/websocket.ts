@@ -10,10 +10,11 @@ export function connectWebSocket(token: string, team?: string) {
     const handler = (msg: any) => {
       try {
         const data = JSON.parse(msg.body)
+        const ticket = data.ticket || data
         const store = useNotificationStore()
         store.add(
-          `Ticket Update: ${data.eventType || ''}`,
-          data.description || `Ticket ${data.id} status changed to ${data.status}`
+          `Ticket Update: ${ticket.eventType || ''}`,
+          data.message || `Ticket ${ticket.id} status changed to ${ticket.status}`
         )
       } catch (e) {
         console.warn('[WS] Failed to parse message:', e)
