@@ -27,6 +27,10 @@ export function uploadPhoto(id: string, file: File) {
   return client.post<{ url: string; filename: string }>(`/tickets/${id}/photos`, form)
 }
 
+export function deletePhoto(id: string, photoUrl: string) {
+  return client.delete(`/tickets/${id}/photos`, { params: { url: photoUrl } })
+}
+
 export function getTicketStats() {
   return client.get<TicketStats>('/tickets/stats')
 }

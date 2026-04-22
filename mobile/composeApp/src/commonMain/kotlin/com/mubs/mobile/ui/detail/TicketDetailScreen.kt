@@ -137,6 +137,7 @@ data class TicketDetailScreen(val ticketId: String) : Screen {
                     onStatusUpdate = model::requestStatusUpdate,
                     onReassign = model::showReassign,
                     onPhotoUpload = model::uploadPhoto,
+                    onPhotoDelete = model::deletePhoto,
                     modifier = Modifier.padding(padding)
                 )
             }
@@ -158,6 +159,7 @@ private fun TicketContent(
     onStatusUpdate: (String) -> Unit,
     onReassign: () -> Unit,
     onPhotoUpload: (String, ByteArray) -> Unit,
+    onPhotoDelete: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -232,7 +234,9 @@ private fun TicketContent(
         // Handle photos
         if (ticket.handlePhotos.isNotEmpty()) {
             var selectedPhotoUrl by remember { mutableStateOf<String?>(null) }
+            var photoToDelete by remember { mutableStateOf<String?>(null) }
             val baseUrl = remember { platformBaseUrl() }
+            val canDelete = ticket.status == TicketStatus.IN_PROGRESS || ticket.status == TicketStatus.ACCEPTED
 
             SectionCard("Photos (${ticket.handlePhotos.size})") {
                 LazyRow(
@@ -241,18 +245,51 @@ private fun TicketContent(
                 ) {
                     items(ticket.handlePhotos) { path ->
                         val fullUrl = if (path.startsWith("http")) path else "${baseUrl}${path}"
-                        AsyncImage(
-                            model = fullUrl,
-                            contentDescription = "Photo",
-                            contentScale = ContentScale.Crop,
-                            modifier = Modifier
-                                .size(100.dp)
-                                .clip(RoundedCornerShape(8.dp))
-                                .background(Color.Black)
-                                .clickable { selectedPhotoUrl = fullUrl }
-                        )
+                        Box {
+                            AsyncImage(
+                                model = fullUrl,
+                                contentDescription = "Photo",
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier
+                                    .size(100.dp)
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .background(Color.Black)
+                                    .clickable { selectedPhotoUrl = fullUrl }
+                            )
+                            if (canDelete) {
+                                Box(
+                                    modifier = Modifier
+                                        .align(Alignment.TopEnd)
+                                        .padding(4.dp)
+                                        .size(22.dp)
+                                        .background(Color(0xCCFF1744), CircleShape)
+                                        .clickable { photoToDelete = path },
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text("\u00D7", color = Color.White, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+                                }
+                            }
+                        }
                     }
                 }
+            }
+
+            // Delete confirmation dialog
+            if (photoToDelete != null) {
+                AlertDialog(
+                    onDismissRequest = { photoToDelete = null },
+                    title = { Text("Delete Photo") },
+                    text = { Text("Are you sure you want to delete this photo?") },
+                    confirmButton = {
+                        TextButton(onClick = {
+                            onPhotoDelete(photoToDelete!!)
+                            photoToDelete = null
+                        }) { Text("Delete", color = Color(0xFFFF1744)) }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { photoToDelete = null }) { Text("Cancel") }
+                    }
+                )
             }
 
             if (selectedPhotoUrl != null) {

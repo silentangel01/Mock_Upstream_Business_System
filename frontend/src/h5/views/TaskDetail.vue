@@ -26,8 +26,11 @@
     <!-- Handle Photos -->
     <van-cell-group v-if="ticket.handlePhotos.length" inset title="Handling Photos" style="margin:12px">
       <div style="padding:12px;display:flex;gap:8px;flex-wrap:wrap">
-        <van-image v-for="(url, i) in ticket.handlePhotos" :key="i" :src="url" width="80" height="80" fit="cover"
-          @click="previewPhotos(i)" />
+        <div v-for="(url, i) in ticket.handlePhotos" :key="i" style="position:relative">
+          <van-image :src="url" width="80" height="80" fit="cover" @click="previewPhotos(i)" />
+          <van-icon v-if="canHandle" name="cross" class="photo-delete-btn"
+            @click.stop="confirmDeletePhoto(url)" />
+        </div>
       </div>
     </van-cell-group>
 
@@ -59,7 +62,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { showImagePreview, showDialog, showToast } from 'vant'
-import { getTicket, updateTicketStatus } from '@shared/api/tickets'
+import { getTicket, updateTicketStatus, deletePhoto } from '@shared/api/tickets'
 import { STATUS_LABEL, EVENT_TYPE_LABEL, TEAM_LABEL, ALLOWED_TRANSITIONS } from '@shared/utils/constants'
 import { formatDate } from '@shared/utils/format'
 import type { Ticket } from '@shared/types'
@@ -98,8 +101,31 @@ async function doTransition(status: string) {
   } catch { /* cancelled */ }
 }
 
+async function confirmDeletePhoto(url: string) {
+  try {
+    await showDialog({ title: 'Delete Photo', message: 'Are you sure you want to delete this photo?' })
+    await deletePhoto(ticket.value!.id, url)
+    const { data } = await getTicket(route.params.id as string)
+    ticket.value = data
+    showToast('Photo deleted')
+  } catch { /* cancelled */ }
+}
+
 onMounted(async () => {
   const { data } = await getTicket(route.params.id as string)
   ticket.value = data
 })
 </script>
+
+<style scoped>
+.photo-delete-btn {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  background: #ff1744;
+  color: #fff;
+  border-radius: 50%;
+  font-size: 12px;
+  padding: 2px;
+}
+</style>

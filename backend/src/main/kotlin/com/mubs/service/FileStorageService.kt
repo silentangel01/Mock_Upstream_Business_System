@@ -35,4 +35,15 @@ class FileStorageService(
         log.info("Stored photo: {}", filename)
         return filename
     }
+
+    fun deletePhoto(photoUrl: String) {
+        val filename = photoUrl.substringAfterLast("/")
+        val targetPath = uploadPath.resolve(filename)
+        try {
+            Files.deleteIfExists(targetPath)
+            log.info("Deleted photo: {}", filename)
+        } catch (e: Exception) {
+            log.warn("Failed to delete photo file: {}", filename, e)
+        }
+    }
 }

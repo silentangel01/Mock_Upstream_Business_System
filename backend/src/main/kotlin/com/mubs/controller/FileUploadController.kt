@@ -31,4 +31,23 @@ class FileUploadController(
 
         return ResponseEntity.ok(mapOf("url" to photoUrl, "filename" to filename))
     }
+
+    @DeleteMapping("/{id}/photos")
+    fun deletePhoto(
+        @PathVariable id: String,
+        @RequestParam("url") photoUrl: String,
+        authentication: Authentication
+    ): ResponseEntity<Map<String, Any>> {
+        val ticket = ticketService.findById(id)
+            ?: return ResponseEntity.notFound().build()
+
+        if (!ticket.handlePhotos.remove(photoUrl)) {
+            return ResponseEntity.badRequest().body(mapOf("message" to "Photo not found" as Any))
+        }
+
+        ticketService.save(ticket)
+        fileStorageService.deletePhoto(photoUrl)
+
+        return ResponseEntity.ok(mapOf("removed" to photoUrl as Any))
+    }
 }

@@ -32,8 +32,13 @@
         <!-- Handle Photos -->
         <el-card v-if="ticket.handlePhotos.length" header="Handling Photos" style="margin-bottom:16px">
           <div style="display:flex;gap:8px;flex-wrap:wrap">
-            <el-image v-for="(url, i) in ticket.handlePhotos" :key="i" :src="url" fit="cover"
-              style="width:150px;height:150px;border-radius:4px" :preview-src-list="ticket.handlePhotos" :initial-index="i" />
+            <div v-for="(url, i) in ticket.handlePhotos" :key="i" style="position:relative">
+              <el-image :src="url" fit="cover"
+                style="width:150px;height:150px;border-radius:4px" :preview-src-list="ticket.handlePhotos" :initial-index="i" />
+              <el-button v-if="canDeletePhotos" type="danger" circle size="small"
+                style="position:absolute;top:-8px;right:-8px;width:22px;height:22px;font-size:12px"
+                @click="doDeletePhoto(url)">X</el-button>
+            </div>
           </div>
         </el-card>
       </el-col>
@@ -102,13 +107,13 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { getTicket, updateTicketStatus, reassignTicket, listFieldworkers } from '@shared/api/tickets'
+import { getTicket, updateTicketStatus, reassignTicket, listFieldworkers, deletePhoto } from '@shared/api/tickets'
 import { useAuthStore } from '@shared/stores/auth'
 import { STATUS_LABEL, STATUS_TYPE, EVENT_TYPE_LABEL, TEAM_LABEL, ALLOWED_TRANSITIONS } from '@shared/utils/constants'
 import { formatDate } from '@shared/utils/format'
 import type { Ticket, Fieldworker } from '@shared/types'
 import { TicketStatus } from '@shared/types'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 
 const route = useRoute()
 const router = useRouter()
@@ -120,6 +125,10 @@ const allowedTransitions = computed(() =>
   ticket.value ? ALLOWED_TRANSITIONS[ticket.value.status as TicketStatus] || [] : []
 )
 const canReassign = computed(() => auth.isAdmin || auth.isDispatcher)
+const canDeletePhotos = computed(() => {
+  const s = ticket.value?.status
+  return s === TicketStatus.ACCEPTED || s === TicketStatus.IN_PROGRESS
+})
 
 // Status dialog
 const statusDialogVisible = ref(false)
@@ -182,6 +191,15 @@ async function doReassign() {
 function onPhotoUploaded() {
   loadTicket()
   ElMessage.success('Photo uploaded')
+}
+
+async function doDeletePhoto(url: string) {
+  try {
+    await ElMessageBox.confirm('Are you sure you want to delete this photo?', 'Delete Photo', { type: 'warning' })
+    await deletePhoto(ticket.value!.id, url)
+    await loadTicket()
+    ElMessage.success('Photo deleted')
+  } catch { /* cancelled */ }
 }
 
 async function loadTicket() {

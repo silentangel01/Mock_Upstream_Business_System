@@ -8,6 +8,7 @@ import com.mubs.mobile.data.model.TicketStatus
 import com.mubs.mobile.data.model.TicketStatusUpdateRequest
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
+import io.ktor.client.request.delete
 import io.ktor.client.request.forms.formData
 import io.ktor.client.request.forms.submitFormWithBinaryData
 import io.ktor.client.request.get
@@ -86,6 +87,14 @@ class TicketApi(private val client: HttpClient) {
                     })
                 }
             ).body()
+        }
+    }
+
+    suspend fun deletePhoto(id: String, photoUrl: String): Result<Map<String, String>> {
+        return runCatching {
+            client.delete("/api/tickets/$id/photos") {
+                parameter("url", photoUrl)
+            }.body()
         }
     }
 }

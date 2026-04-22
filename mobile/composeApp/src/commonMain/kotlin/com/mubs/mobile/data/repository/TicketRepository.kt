@@ -36,4 +36,9 @@ class TicketRepository(private val ticketApi: TicketApi) {
         fileName: String,
         fileBytes: ByteArray
     ): Result<Map<String, String>> = ticketApi.uploadPhoto(id, fileName, fileBytes)
+
+    suspend fun deletePhoto(
+        id: String,
+        photoUrl: String
+    ): Result<Map<String, String>> = ticketApi.deletePhoto(id, photoUrl)
 }

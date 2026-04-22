@@ -128,4 +128,18 @@ class TicketDetailScreenModel(
                 }
         }
     }
+
+    fun deletePhoto(photoUrl: String) {
+        screenModelScope.launch {
+            _state.value = _state.value.copy(actionInProgress = true)
+            ticketRepository.deletePhoto(ticketId, photoUrl)
+                .onSuccess { loadTicket() }
+                .onFailure { e ->
+                    _state.value = _state.value.copy(
+                        actionInProgress = false,
+                        error = e.message ?: "Delete failed"
+                    )
+                }
+        }
+    }
 }

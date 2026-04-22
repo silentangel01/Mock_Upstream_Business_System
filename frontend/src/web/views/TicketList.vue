@@ -41,6 +41,12 @@
       <el-table-column prop="location" label="Location" min-width="120">
         <template #default="{ row }">{{ row.location || '-' }}</template>
       </el-table-column>
+      <el-table-column label="Photos" width="80" align="center">
+        <template #default="{ row }">
+          <span v-if="row.handlePhotos?.length" style="color:#67c23a;font-weight:600">{{ row.handlePhotos.length }}</span>
+          <span v-else style="color:#c0c4cc">-</span>
+        </template>
+      </el-table-column>
       <el-table-column prop="createdAt" label="Created" width="180">
         <template #default="{ row }">{{ formatDate(row.createdAt) }}</template>
       </el-table-column>
