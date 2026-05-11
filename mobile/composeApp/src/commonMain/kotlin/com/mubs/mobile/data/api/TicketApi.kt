@@ -15,6 +15,8 @@ import io.ktor.client.request.get
 import io.ktor.client.request.parameter
 import io.ktor.client.request.patch
 import io.ktor.client.request.setBody
+import io.ktor.client.statement.HttpResponse
+import io.ktor.client.statement.bodyAsText
 import io.ktor.http.Headers
 import io.ktor.http.HttpHeaders
 
@@ -30,13 +32,13 @@ class TicketApi(private val client: HttpClient) {
                 status?.let { parameter("status", it.name) }
                 parameter("page", page)
                 parameter("size", size)
-            }.body()
+            }.bodyOrThrow()
         }
     }
 
     suspend fun getTicket(id: String): Result<Ticket> {
         return runCatching {
-            client.get("/api/tickets/$id").body()
+            client.get("/api/tickets/$id").bodyOrThrow()
         }
     }
 
@@ -48,7 +50,7 @@ class TicketApi(private val client: HttpClient) {
         return runCatching {
             client.patch("/api/tickets/$id/status") {
                 setBody(TicketStatusUpdateRequest(status, note))
-            }.body()
+            }.bodyOrThrow()
         }
     }
 
@@ -60,7 +62,7 @@ class TicketApi(private val client: HttpClient) {
         return runCatching {
             client.patch("/api/tickets/$id/reassign") {
                 setBody(ReassignRequest(targetUser, note))
-            }.body()
+            }.bodyOrThrow()
         }
     }
 
@@ -68,7 +70,7 @@ class TicketApi(private val client: HttpClient) {
         return runCatching {
             client.get("/api/tickets/fieldworkers") {
                 team?.let { parameter("team", it) }
-            }.body()
+            }.bodyOrThrow()
         }
     }
 
@@ -86,7 +88,7 @@ class TicketApi(private val client: HttpClient) {
                         append(HttpHeaders.ContentType, "image/jpeg")
                     })
                 }
-            ).body()
+            ).bodyOrThrow()
         }
     }
 
@@ -94,7 +96,22 @@ class TicketApi(private val client: HttpClient) {
         return runCatching {
             client.delete("/api/tickets/$id/photos") {
                 parameter("url", photoUrl)
-            }.body()
+            }.bodyOrThrow()
         }
+    }
+
+    private suspend inline fun <reified T> HttpResponse.bodyOrThrow(): T {
+        val statusCode = status.value
+        if (statusCode in 200..299) {
+            return body()
+        }
+
+        val errorBody = runCatching { bodyAsText() }.getOrDefault("").trim()
+        val message = when (statusCode) {
+            401, 403 -> "Session expired. Please log in again."
+            404 -> "Resource not found."
+            else -> errorBody.ifBlank { "Request failed ($statusCode)." }
+        }
+        throw ApiException(statusCode, message)
     }
 }

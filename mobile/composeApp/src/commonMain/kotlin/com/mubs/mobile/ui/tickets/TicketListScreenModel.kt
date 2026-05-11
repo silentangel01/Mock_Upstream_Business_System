@@ -2,8 +2,10 @@ package com.mubs.mobile.ui.tickets
 
 import cafe.adriel.voyager.core.model.ScreenModel
 import cafe.adriel.voyager.core.model.screenModelScope
+import com.mubs.mobile.data.api.ApiException
 import com.mubs.mobile.data.model.Ticket
 import com.mubs.mobile.data.model.TicketStatus
+import com.mubs.mobile.data.repository.AuthRepository
 import com.mubs.mobile.data.repository.TicketRepository
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -19,11 +21,13 @@ data class TicketListUiState(
     val error: String? = null,
     val selectedStatus: TicketStatus? = null,
     val currentPage: Int = 0,
-    val hasMore: Boolean = true
+    val hasMore: Boolean = true,
+    val authExpired: Boolean = false
 )
 
 class TicketListScreenModel(
-    private val ticketRepository: TicketRepository
+    private val ticketRepository: TicketRepository,
+    private val authRepository: AuthRepository
 ) : ScreenModel {
 
     private val _state = MutableStateFlow(TicketListUiState())
@@ -47,7 +51,7 @@ class TicketListScreenModel(
                         tickets = page.content,
                         hasMore = !page.last
                     )
-                }
+                }.onFailure { e -> handleFailure(e) }
             }
         }
     }
@@ -89,13 +93,26 @@ class TicketListScreenModel(
                     isRefreshing = false,
                     hasMore = !page.last
                 )
-            }.onFailure { e ->
-                _state.value = _state.value.copy(
-                    isLoading = false,
-                    isRefreshing = false,
-                    error = e.message ?: "Load failed"
-                )
-            }
+            }.onFailure { e -> handleFailure(e) }
         }
+    }
+
+    private suspend fun handleFailure(error: Throwable) {
+        if (error is ApiException && error.statusCode in setOf(401, 403)) {
+            authRepository.logout()
+            _state.value = _state.value.copy(
+                isLoading = false,
+                isRefreshing = false,
+                error = error.message ?: "Session expired. Please log in again.",
+                authExpired = true
+            )
+            return
+        }
+
+        _state.value = _state.value.copy(
+            isLoading = false,
+            isRefreshing = false,
+            error = error.message ?: "Load failed"
+        )
     }
 }

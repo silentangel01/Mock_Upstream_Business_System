@@ -33,7 +33,7 @@ class NotificationService(
     private val log = LoggerFactory.getLogger(javaClass)
 
     fun notifyNewTicket(ticket: Ticket) {
-        val message = "New ticket [${ticket.id}] — ${ticket.eventType}: ${ticket.description ?: "No description"}"
+        val message = "New ticket [${ticket.id}] - ${ticket.eventType}: ${ticket.description ?: "No description"}"
 
         // 1. WebSocket broadcast
         sendWebSocket(ticket, message)
@@ -48,7 +48,7 @@ class NotificationService(
                 val ctx = Context().apply {
                     setVariable("ticketId", ticket.id ?: "")
                     setVariable("eventType", ticket.eventType)
-                    setVariable("description", ticket.description ?: "—")
+                    setVariable("description", ticket.description ?: "N/A")
                     setVariable("team", ticket.assignedTeam ?: "")
                     setVariable("actionUrl", buildTicketUrl(ticket, targetUser.role))
                 }
@@ -79,7 +79,7 @@ class NotificationService(
                     val ctx = Context().apply {
                         setVariable("ticketId", ticket.id ?: "")
                         setVariable("eventType", ticket.eventType)
-                        setVariable("description", ticket.description ?: "—")
+                        setVariable("description", ticket.description ?: "N/A")
                         setVariable("team", team)
                         setVariable("actionUrl", buildTicketUrl(ticket, user.role))
                     }
@@ -112,7 +112,7 @@ class NotificationService(
     }
 
     fun notifyDispatchTimeout(ticket: Ticket) {
-        val message = "Ticket [${ticket.id}] dispatch timeout — ${ticket.eventType}: ${ticket.description ?: ""}"
+        val message = "Ticket [${ticket.id}] dispatch timeout - ${ticket.eventType}: ${ticket.description ?: ""}"
 
         // 1. WebSocket broadcast
         sendWebSocket(ticket, message)
@@ -124,7 +124,7 @@ class NotificationService(
             val ctx = Context().apply {
                 setVariable("ticketId", ticket.id ?: "")
                 setVariable("eventType", ticket.eventType)
-                setVariable("description", ticket.description ?: "—")
+                setVariable("description", ticket.description ?: "N/A")
                 setVariable("timeoutMinutes", timeoutMinutes)
                 setVariable("actionUrl", buildTicketUrl(ticket, UserRole.ADMIN))
             }

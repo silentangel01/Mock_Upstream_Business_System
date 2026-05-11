@@ -54,13 +54,24 @@ class TicketListScreen : Screen {
     override fun Content() {
         val navigator = LocalNavigator.currentOrThrow
         val scope = rememberCoroutineScope()
-        val model = remember { TicketListScreenModel(AppModule.instance.ticketRepository) }
+        val model = remember {
+            TicketListScreenModel(
+                AppModule.instance.ticketRepository,
+                AppModule.instance.authRepository
+            )
+        }
         val state by model.state.collectAsState()
         val listState = rememberLazyListState()
         val username = remember { mutableStateOf<String?>(null) }
 
         LaunchedEffect(Unit) {
             username.value = AppModule.instance.authRepository.getUsername()
+        }
+
+        LaunchedEffect(state.authExpired) {
+            if (state.authExpired) {
+                navigator.replaceAll(LoginScreen())
+            }
         }
 
         val shouldLoadMore by remember {

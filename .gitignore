@@ -1,7 +1,12 @@
 .idea/
 *.iml
 uploads/
+node_modules/
+.postman/
+postman/
+docs/
 
 # Local config with secrets (NEVER commit)
 .env
 backend/src/main/resources/application-local.yml
+*.tsbuildinfo

@@ -12,6 +12,8 @@
       <el-col :span="14">
         <el-card header="Basic Info" style="margin-bottom:16px">
           <el-descriptions :column="2" border>
+            <el-descriptions-item label="Ticket ID" :span="2">{{ ticket.id || '-' }}</el-descriptions-item>
+            <el-descriptions-item label="HVAS Event ID" :span="2">{{ ticket.hvasEventId || '-' }}</el-descriptions-item>
             <el-descriptions-item label="Event Type">{{ EVENT_TYPE_LABEL[ticket.eventType] || ticket.eventType }}</el-descriptions-item>
             <el-descriptions-item label="Confidence">{{ (ticket.confidence * 100).toFixed(0) }}%</el-descriptions-item>
             <el-descriptions-item label="Team">{{ TEAM_LABEL[ticket.assignedTeam!] || ticket.assignedTeam || '-' }}</el-descriptions-item>
@@ -19,6 +21,7 @@
             <el-descriptions-item label="Camera">{{ ticket.cameraId }}</el-descriptions-item>
             <el-descriptions-item label="Location">{{ ticket.location || '-' }}</el-descriptions-item>
             <el-descriptions-item label="Area Code">{{ ticket.areaCode || '-' }}</el-descriptions-item>
+            <el-descriptions-item label="Lat/Lng">{{ ticket.latLng || '-' }}</el-descriptions-item>
             <el-descriptions-item label="Created" :span="2">{{ formatDate(ticket.createdAt) }}</el-descriptions-item>
             <el-descriptions-item v-if="ticket.description" label="Description" :span="2">{{ ticket.description }}</el-descriptions-item>
           </el-descriptions>
